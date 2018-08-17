@@ -1248,19 +1248,6 @@ void IntraSearch::xIntraCodingTUBlock(TransformUnit &tu, const ComponentID &comp
   m_pcTrQuant->selectLambda(compID);
 #endif
 
-#if JVET_K0190
-  if( ! PU::isLMCMode(uiChFinalMode) && sps.getSpsNext().getUseLMChroma() )
-  {
-    if( compID == COMPONENT_Cb )
-    {
-      m_pcTrQuant->setLambda( m_pcTrQuant->getLambda() * 15.0 / 16.0 );
-    }
-    else if( compID == COMPONENT_Cr )
-    {
-      m_pcTrQuant->setLambda( m_pcTrQuant->getLambda() * 16.0 / 15.0 );
-    }
-  }
-#endif
 
   m_pcTrQuant->transformNxN(tu, compID, cQP, uiAbsSum, m_CABACEstimator->getCtx());
 

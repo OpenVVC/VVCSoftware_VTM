@@ -950,7 +950,7 @@ void EncModeCtrlMTnoRQT::initCTUEncoding( const Slice &slice )
   }
 }
 
-#if ENABLE_TRACING
+#if ENABLE_TRACING && !JVET_K0220_ENC_CTRL
 static unsigned getHalvedIdx( unsigned idx )
 {
   return gp_sizeIdxInfo->idxFrom( gp_sizeIdxInfo->sizeFrom( idx ) >> 1 );

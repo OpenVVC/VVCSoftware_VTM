@@ -2970,7 +2970,11 @@ void EncGOP::xCalculateAddPSNR( Picture* pcPic, PelUnitBuf cPicD, const AccessUn
          uibits );
 
     msg( NOTICE, " [Y %6.4lf dB    U %6.4lf dB    V %6.4lf dB]", dPSNR[COMPONENT_Y], dPSNR[COMPONENT_Cb], dPSNR[COMPONENT_Cr] );
-    
+
+#if EXTENSION_360_VIDEO
+    m_ext360.printPerPOCInfo(NOTICE);
+#endif
+
     if (m_pcEncLib->getPrintHexPsnr())
     {
       uint64_t xPsnr[MAX_NUM_COMPONENT];
@@ -2981,11 +2985,11 @@ void EncGOP::xCalculateAddPSNR( Picture* pcPic, PelUnitBuf cPicD, const AccessUn
              reinterpret_cast<uint8_t *>(&xPsnr[i]));
       }
       msg(NOTICE, " [xY %16" PRIx64 " xU %16" PRIx64 " xV %16" PRIx64 "]", xPsnr[COMPONENT_Y], xPsnr[COMPONENT_Cb], xPsnr[COMPONENT_Cr]);
-    }
 
 #if EXTENSION_360_VIDEO
-    m_ext360.printPerPOCInfo(NOTICE);
+      m_ext360.printPerPOCInfo(NOTICE, true);
 #endif
+    }
 
     if( printFrameMSE )
     {

@@ -101,6 +101,10 @@ inline void dtraceModeCost(CodingStructure &cs, double lambda)
   if( isIntra && intraModeC == DM_CHROMA_IDX ) intraModeC = 36;
   else if( isIntra ) intraModeC = g_intraMode65to33AngMapping[intraModeC];
 #endif
+  int imvVal = 0;
+#if JVET_K0357_AMVR
+  imvVal = cs.cus[0]->imv;
+#endif
   DTRACE( g_trace_ctx, D_MODE_COST, "ModeCost: %6lld %3d @(%4d,%4d) [%2dx%2d] %d (qp%d,pm%d,ptSize%d,skip%d,mrg%d,fruc%d,obmc%d,ic%d,imv%d,affn%d,%d,%d) tempCS = %lld (%d,%d)\n",
     DTRACE_GET_COUNTER( g_trace_ctx, D_MODE_COST ),
     cs.slice->getPOC(),
@@ -113,11 +117,7 @@ inline void dtraceModeCost(CodingStructure &cs, double lambda)
     cs.cus[0]->skip,
     cs.pus[0]->mergeFlag,
     0, 0, 
-#if JVET_K0357_AMVR
-    cs.cus[0]->imv,
-#else
-    0,
-#endif
+    imvVal,
     0, 0,
           intraModeL, intraModeC,
           tempCost, tempBits, tempDist );
