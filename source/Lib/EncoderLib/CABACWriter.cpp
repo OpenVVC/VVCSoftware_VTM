@@ -176,7 +176,7 @@ void CABACWriter::coding_tree_unit( CodingStructure& cs, const UnitArea& area, i
 #endif
 
 #if JVET_K0230_DUAL_CODING_TREE_UNDER_64x64_BLOCK
-  if (CS::isDualITree(cs) && cs.pcv->chrFormat != CHROMA_400)
+  if ( CS::isDualITree(cs) && cs.pcv->chrFormat != CHROMA_400 && cs.pcv->maxCUWidth > 64 )
   {
     CUCtx chromaCuCtx(qps[CH_C]);
     Partitioner *chromaPartitioner = PartitionerFactory::get(*cs.slice);
@@ -192,15 +192,14 @@ void CABACWriter::coding_tree_unit( CodingStructure& cs, const UnitArea& area, i
 #endif
   coding_tree( cs, *partitioner, cuCtx );
   qps[CH_L] = cuCtx.qp;
-#if JVET_K0230_DUAL_CODING_TREE_UNDER_64x64_BLOCK
-  }
-#else
   if( CS::isDualITree( cs ) && cs.pcv->chrFormat != CHROMA_400 )
   {
     CUCtx cuCtxChroma( qps[CH_C] );
     partitioner->initCtu( area, CH_C, *cs.slice );
     coding_tree( cs, *partitioner, cuCtxChroma );
     qps[CH_C] = cuCtxChroma.qp;
+  }
+#if JVET_K0230_DUAL_CODING_TREE_UNDER_64x64_BLOCK
   }
 #endif
 

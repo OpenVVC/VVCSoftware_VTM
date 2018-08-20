@@ -197,7 +197,7 @@ bool CABACReader::coding_tree_unit( CodingStructure& cs, const UnitArea& area, i
 #if JVET_K0230_DUAL_CODING_TREE_UNDER_64x64_BLOCK
   bool isLast = false;
 
-  if (CS::isDualITree(cs) && cs.pcv->chrFormat != CHROMA_400)
+  if ( CS::isDualITree(cs) && cs.pcv->chrFormat != CHROMA_400 && cs.pcv->maxCUWidth > 64 )
   {
     Partitioner *chromaPartitioner = PartitionerFactory::get(*cs.slice);
     chromaPartitioner->initCtu(area, CH_C, *cs.slice);
@@ -210,10 +210,9 @@ bool CABACReader::coding_tree_unit( CodingStructure& cs, const UnitArea& area, i
   else
   {
     isLast = coding_tree(cs, *partitioner, cuCtx);
-    qps[CH_L] = cuCtx.qp;
-  }
 #else
   bool isLast = coding_tree( cs, *partitioner, cuCtx );
+#endif
   qps[CH_L] = cuCtx.qp;
   if( !isLast && CS::isDualITree( cs ) && cs.pcv->chrFormat != CHROMA_400 )
   {
@@ -221,6 +220,8 @@ bool CABACReader::coding_tree_unit( CodingStructure& cs, const UnitArea& area, i
     partitioner->initCtu( area, CH_C, *cs.slice );
     isLast = coding_tree( cs, *partitioner, cuCtxChroma );
     qps[CH_C] = cuCtxChroma.qp;
+  }
+#if JVET_K0230_DUAL_CODING_TREE_UNDER_64x64_BLOCK
   }
 #endif
 
