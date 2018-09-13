@@ -121,7 +121,6 @@ private:
   unsigned int          m_prevPOC;
   bool                  m_clearSubMergeStatic;
 #endif
-
 #if ENABLE_SPLIT_PARALLELISM || ENABLE_WPP_PARALLELISM
   EncLib*               m_pcEncLib;
 #endif
@@ -201,13 +200,16 @@ protected:
 
   void xCheckRDCostMerge2Nx2N ( CodingStructure *&tempCS, CodingStructure *&bestCS, Partitioner &pm, const EncTestMode& encTestMode );
 
+  void xEncodeInterResidual   ( CodingStructure *&tempCS, CodingStructure *&bestCS, Partitioner &partitioner, const EncTestMode& encTestMode, int residualPass = 0
 #if JVET_K0357_AMVR
-  void xEncodeInterResidual   ( CodingStructure *&tempCS, CodingStructure *&bestCS, Partitioner &partitioner, const EncTestMode& encTestMode, int residualPass = 0, CodingStructure* imvCS = NULL, int emtMode = 1, bool* bestHasNonResi = NULL );
-#else
-  void xEncodeInterResidual   ( CodingStructure *&tempCS, CodingStructure *&bestCS, Partitioner &partitioner, const EncTestMode& encTestMode, int residualPass, bool* bestHasNonResi );
+    , CodingStructure* imvCS = NULL
 #endif
+#if JVET_K1000_SIMPLIFIED_EMT
+    , int emtMode = 1
+#endif
+    , bool* bestHasNonResi = NULL
+  );
 #if REUSE_CU_RESULTS
-
   void xReuseCachedResult     ( CodingStructure *&tempCS, CodingStructure *&bestCS, Partitioner &Partitioner );
 #endif
 };

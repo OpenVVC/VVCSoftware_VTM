@@ -743,7 +743,8 @@ bool BestEncInfoCache::isValid( const CodingStructure& cs, const Partitioner& pa
 
   BestEncodingInfo& encInfo = *m_bestEncInfo[idx1][idx2][idx3][idx4];
 
-  if( cs.picture->poc != encInfo.poc || CS::getArea( cs, cs.area, partitioner.chType ) != encInfo.cu || !isTheSameNbHood( encInfo.cu, partitioner ) )
+  if( cs.picture->poc != encInfo.poc || CS::getArea( cs, cs.area, partitioner.chType ) != encInfo.cu || !isTheSameNbHood( encInfo.cu, partitioner ) 
+    )
   {
     return false;
   }
@@ -942,7 +943,15 @@ void EncModeCtrlMTnoRQT::initCTUEncoding( const Slice &slice )
 
   if( m_pcEncCfg->getUseE0023FastEnc() )
   {
-    m_skipThreshold = ( ( slice.getMinPictureDistance() <= PICTURE_DISTANCE_TH ) ? FAST_SKIP_DEPTH : SKIP_DEPTH );
+#if JVET_K0157
+    if (m_pcEncCfg->getUseCompositeRef())
+      m_skipThreshold = ( ( slice.getMinPictureDistance() <= PICTURE_DISTANCE_TH * 2 ) ? FAST_SKIP_DEPTH : SKIP_DEPTH );
+    else
+      m_skipThreshold = ((slice.getMinPictureDistance() <= PICTURE_DISTANCE_TH) ? FAST_SKIP_DEPTH : SKIP_DEPTH);
+
+#else
+    m_skipThreshold = ((slice.getMinPictureDistance() <= PICTURE_DISTANCE_TH) ? FAST_SKIP_DEPTH : SKIP_DEPTH);
+#endif
   }
   else
   {
@@ -1057,7 +1066,6 @@ void EncModeCtrlMTnoRQT::initCULevel( Partitioner &partitioner, const CodingStru
 #endif
 
   xGetMinMaxQP( minQP, maxQP, cs, partitioner, baseQP, *cs.sps, *cs.pps, true );
-
   // Add coding modes here
   // NOTE: Working back to front, as a stack, which is more efficient with the container
   // NOTE: First added modes will be processed at the end.
@@ -1425,11 +1433,11 @@ bool EncModeCtrlMTnoRQT::tryMode( const EncTestMode& encTestmode, const CodingSt
     {
       return false;
     }
-
     if( lastTestMode().type != ETM_INTRA && cuECtx.bestCS && cuECtx.bestCU && interHadActive( cuECtx ) )
     {
       // Get SATD threshold from best Inter-CU
-      if( !cs.slice->isIntra() && m_pcEncCfg->getUsePbIntraFast() )
+      if( !cs.slice->isIntra() && m_pcEncCfg->getUsePbIntraFast() 
+        )
       {
         CodingUnit* bestCU = cuECtx.bestCU;
         if( bestCU && CU::isInter( *bestCU ) )

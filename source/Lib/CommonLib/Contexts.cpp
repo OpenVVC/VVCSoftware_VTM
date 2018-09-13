@@ -383,6 +383,7 @@ const CtxSet ContextSetCfg::AffineType = ContextSetCfg::addCtxSet
 #endif
 #endif
 
+
 const CtxSet ContextSetCfg::Mvd = ContextSetCfg::addCtxSet
 ({
   {  169, 198,},
@@ -804,7 +805,7 @@ void CtxStore<BinProbModel>::init( int qp, int initId )
   const std::vector<uint8_t>& initTable = ContextSetCfg::getInitTable( initId );
   CHECK( m_CtxBuffer.size() != initTable.size(),
         "Size of init table (" << initTable.size() << ") does not match size of context buffer (" << m_CtxBuffer.size() << ")." );
-  int clippedQP = std::min( std::max( 0, qp ), MAX_QP );
+  int clippedQP = Clip3( 0, MAX_QP, qp );
   for( std::size_t k = 0; k < m_CtxBuffer.size(); k++ )
   {
     m_CtxBuffer[k].init( clippedQP, initTable[k] );

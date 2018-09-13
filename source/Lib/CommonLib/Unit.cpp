@@ -274,7 +274,6 @@ CodingUnit& CodingUnit::operator=( const CodingUnit& other )
   imv               = other.imv;
   imvNumCand        = other.imvNumCand;
 #endif
-
   return *this;
 }
 

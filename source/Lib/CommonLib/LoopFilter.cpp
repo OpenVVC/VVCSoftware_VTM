@@ -421,7 +421,6 @@ unsigned LoopFilter::xGetBoundaryStrengthSingle ( const CodingUnit& cu, const De
   const Slice& sliceQ = *cu.slice;
 
   const Position& cuPosLuma = cu.lumaPos();
-
   const Position& posQ  = localPos;
   const Position  posP  = ( edgeDir == EDGE_VER ) ? posQ.offset( -1, 0 ) : posQ.offset( 0, -1 );
 

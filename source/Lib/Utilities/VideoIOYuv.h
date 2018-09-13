@@ -78,10 +78,16 @@ public:
 
   // If fileFormat=NUM_CHROMA_FORMAT, use the format defined by pPicYuv
   bool  write( const CPelUnitBuf& pic,
-               const InputColourSpaceConversion ipCSC, int confLeft = 0, int confRight = 0, int confTop = 0, int confBottom = 0, ChromaFormat format = NUM_CHROMA_FORMAT, const bool bClipToRec709 = false ); ///< write one YUV frame with padding parameter
+               const InputColourSpaceConversion ipCSC,
+               const bool bPackedYUVOutputMode,
+               int confLeft = 0, int confRight = 0, int confTop = 0, int confBottom = 0, ChromaFormat format = NUM_CHROMA_FORMAT, const bool bClipToRec709 = false ); ///< write one YUV frame with padding parameter
 
   // If fileFormat=NUM_CHROMA_FORMAT, use the format defined by pPicYuvTop and pPicYuvBottom
-  bool  write( const CPelUnitBuf& picTop, const CPelUnitBuf& picBot, const InputColourSpaceConversion ipCSC, int confLeft=0, int confRight=0, int confTop=0, int confBottom=0, ChromaFormat fileFormat=NUM_CHROMA_FORMAT, const bool isTff=false, const bool bClipToRec709=false);
+  bool  write( const CPelUnitBuf& picTop, const CPelUnitBuf& picBot,
+               const InputColourSpaceConversion ipCSC,
+               const bool bPackedYUVOutputMode,
+               int confLeft = 0, int confRight = 0, int confTop = 0, int confBottom = 0, ChromaFormat format = NUM_CHROMA_FORMAT, const bool isTff = false, const bool bClipToRec709 = false );
+
   static void ColourSpaceConvert(const CPelUnitBuf &src, PelUnitBuf &dest, const InputColourSpaceConversion conversion, bool bIsForwards);
 
   bool  isEof ();                                           ///< check for end-of-file

@@ -89,7 +89,10 @@ public:
   // - 0 = no subsampling, 1 = even rows, 2 = every 4th, etc.
   int                   subShift;
 
-  DistParam() : org(), cur(), step( 1 ), bitDepth( 0 ), useMR( false ), applyWeight( false ), isBiPred( false ), wpCur( nullptr ), compID( MAX_NUM_COMPONENT ), maximumDistortionForEarlyExit( std::numeric_limits<Distortion>::max() ), subShift( 0 ) { }
+  DistParam() :
+  org(), cur(), step( 1 ), bitDepth( 0 ), useMR( false ), applyWeight( false ), isBiPred( false ), wpCur( nullptr ), compID( MAX_NUM_COMPONENT ), maximumDistortionForEarlyExit( std::numeric_limits<Distortion>::max() ), subShift( 0 )
+
+  { }
 };
 
 /// RD cost computation class
@@ -116,7 +119,6 @@ private:
   int                     m_iCostScale;
 
   bool                    m_useQtbt;
-
 public:
   RdCost();
   virtual ~RdCost();
@@ -168,6 +170,7 @@ public:
   }
   void           setCostScale             ( int iCostScale )           { m_iCostScale = iCostScale; }
   Distortion     getCost                  ( uint32_t b )                   { return Distortion( m_motionLambda * b ); }
+
 
 #if ENABLE_SPLIT_PARALLELISM
   void copyState( const RdCost& other );

@@ -47,6 +47,11 @@
 #include <vector>
 #include <cstdarg>
 
+#if K0149_BLOCK_STATISTICS
+class CodingStructure;
+struct Position;
+#endif
+
 class CDTrace;
 
 typedef std::string CType;
@@ -118,6 +123,21 @@ public:
     template<bool bCount>
     void dtrace       ( int, const char *format, /*va_list args*/... );
     void dtrace_repeat( int, int i_times, const char *format, /*va_list args*/... );
+#if K0149_BLOCK_STATISTICS
+    void dtrace_header       ( const char *format, /*va_list args*/... );
+    // CTU
+    void dtrace_block_scalar( int k, const CodingStructure &cs, std::string stat_type, signed value );
+    // CU
+    void dtrace_block_scalar( int k, const CodingUnit &cu, std::string stat_type, signed value, bool isChroma = false );
+    void dtrace_block_vector( int k, const CodingUnit &cu, std::string stat_type, signed val_x, signed val_y );
+    // PU
+    void dtrace_block_scalar( int k, const PredictionUnit &pu, std::string stat_type, signed value, bool isChroma = false );
+    void dtrace_block_vector( int k, const PredictionUnit &pu, std::string stat_type, signed val_x, signed val_y );
+    void dtrace_block_affinetf( int k, const PredictionUnit &pu, std::string stat_type, signed val_x0, signed val_y0, signed val_x1, signed val_y1, signed val_x2, signed val_y2 );
+    // TU
+    void dtrace_block_scalar(int k, const TransformUnit &tu, std::string stat_type, signed value, bool isChroma = false );
+    void dtrace_block_vector(int k, const TransformUnit &tu, std::string stat_type, signed val_x, signed val_y);
+#endif
     bool update       ( state_type stateval );
     int  init( vstring channel_names );
     int  getLastError() { return m_error_code;  }
@@ -126,6 +146,9 @@ public:
     std::string getErrMessage();
     int64_t getChannelCounter( int channel ) { return chanRules[channel].getCounter(); }
     void    decrementChannelCounter( int channel ) { chanRules[channel].decrementCounter(); }
+#if K0149_BLOCK_STATISTICS
+    bool isChannelActive( int channel ) { return chanRules[channel].active(); }
+#endif
 };
 
 

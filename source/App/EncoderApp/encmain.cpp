@@ -87,9 +87,9 @@ int main(int argc, char* argv[])
   // print information
   fprintf( stdout, "\n" );
 #ifdef SVNREVISION
-  fprintf( stdout, "VVCSoftware: VTM Encoder Version %s (%s@r%s) ", NEXT_SOFTWARE_VERSION, SVNRELATIVEURL, SVNREVISION /*NV_VERSION*/ );
+  fprintf( stdout, "VVCSoftware: BMS Encoder Version %s (%s@r%s) ", NEXT_SOFTWARE_VERSION, SVNRELATIVEURL, SVNREVISION /*NV_VERSION*/ );
 #else
-  fprintf( stdout, "VVCSoftware: VTM Encoder Version %s ", NEXT_SOFTWARE_VERSION /*NV_VERSION*/ );
+  fprintf( stdout, "VVCSoftware: BMS Encoder Version %s ", NEXT_SOFTWARE_VERSION /*NV_VERSION*/ );
 #endif
   fprintf( stdout, NVM_ONOS );
   fprintf( stdout, NVM_COMPILEDBY );

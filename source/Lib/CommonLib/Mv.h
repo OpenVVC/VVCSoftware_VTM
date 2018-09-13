@@ -265,7 +265,6 @@ public:
   }
 #endif
 };// END CLASS DEFINITION MV
-
 #if JVET_K0357_AMVR
 void roundMV( Mv& rcMv, unsigned imvShift );
 #endif

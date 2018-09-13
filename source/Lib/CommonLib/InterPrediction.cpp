@@ -109,7 +109,6 @@ void InterPrediction::destroy()
       m_filteredBlockTmp[i][c] = nullptr;
     }
   }
-
 }
 
 void InterPrediction::init( RdCost* pcRdCost, ChromaFormat chromaFormatIDC )
@@ -124,7 +123,6 @@ void InterPrediction::init( RdCost* pcRdCost, ChromaFormat chromaFormatIDC )
   }
 
   m_currChromaFormat = chromaFormatIDC;
-
   if( m_acYuvPred[REF_PIC_LIST_0][COMPONENT_Y] == nullptr ) // check if first is null (in which case, nothing initialised yet)
   {
     for( uint32_t c = 0; c < MAX_NUM_COMPONENT; c++ )
@@ -147,6 +145,7 @@ void InterPrediction::init( RdCost* pcRdCost, ChromaFormat chromaFormatIDC )
         m_acYuvPred[i][c] = ( Pel* ) xMalloc( Pel, MAX_CU_SIZE * MAX_CU_SIZE );
       }
     }
+
 
     m_iRefListIdx = -1;
     
@@ -365,7 +364,9 @@ void InterPrediction::xSubPuMC( PredictionUnit& pu, PelUnitBuf& predBuf, const R
 }
 #endif
 
-void InterPrediction::xPredInterUni(const PredictionUnit& pu, const RefPicList& eRefPicList, PelUnitBuf& pcYuvPred, const bool& bi )
+
+void InterPrediction::xPredInterUni(const PredictionUnit& pu, const RefPicList& eRefPicList, PelUnitBuf& pcYuvPred, const bool& bi 
+)
 {
   const SPS &sps = *pu.cs->sps;
 
@@ -400,7 +401,6 @@ void InterPrediction::xPredInterUni(const PredictionUnit& pu, const RefPicList& 
   for( uint32_t comp = COMPONENT_Y; comp < pcYuvPred.bufs.size() && comp <= m_maxCompIDToPred; comp++ )
   {
     const ComponentID compID = ComponentID( comp );
-
 #if JVET_K_AFFINE
     if ( pu.cu->affine )
     {
@@ -526,7 +526,6 @@ void InterPrediction::xPredInterBlk ( const ComponentID& compID, const Predictio
     refBuf = refPic->getRecoBuf( CompArea( compID, chFmt, offset, pu.blocks[compID].size() ) );
   }
 
-
   if( yFrac == 0 )
   {
     m_if.filterHor(compID, (Pel*) refBuf.buf, refBuf.stride, dstBuf.buf, dstBuf.stride, width, height, xFrac, rndRes, chFmt, clpRng);
@@ -537,7 +536,7 @@ void InterPrediction::xPredInterBlk ( const ComponentID& compID, const Predictio
   }
   else
   {
-    PelBuf tmpBuf = PelBuf(m_filteredBlockTmp[0][compID], pu.blocks[compID]);
+      PelBuf tmpBuf = PelBuf(m_filteredBlockTmp[0][compID], pu.blocks[compID]);
 
     int vFilterSize = isLuma(compID) ? NTAPS_LUMA : NTAPS_CHROMA;
     m_if.filterHor(compID, (Pel*) refBuf.buf - ((vFilterSize >> 1) - 1) * refBuf.stride, refBuf.stride, tmpBuf.buf, tmpBuf.stride, width, height + vFilterSize - 1, xFrac, false,         chFmt, clpRng);
@@ -545,7 +544,6 @@ void InterPrediction::xPredInterBlk ( const ComponentID& compID, const Predictio
     m_if.filterVer(compID, (Pel*) tmpBuf.buf + ((vFilterSize >> 1) - 1) * tmpBuf.stride, tmpBuf.stride, dstBuf.buf, dstBuf.stride, width, height,                   yFrac, false, rndRes, chFmt, clpRng);
     JVET_J0090_SET_CACHE_ENABLE( true );
   }
-
 }
 
 #if JVET_K_AFFINE
@@ -761,7 +759,8 @@ void InterPrediction::xWeightedAverage( const PredictionUnit& pu, const CPelUnit
   }
 }
 
-void InterPrediction::motionCompensation( PredictionUnit &pu, PelUnitBuf &predBuf, const RefPicList &eRefPicList )
+void InterPrediction::motionCompensation( PredictionUnit &pu, PelUnitBuf &predBuf, const RefPicList &eRefPicList 
+)
 {
         CodingStructure &cs = *pu.cs;
   const PPS &pps            = *cs.pps;
@@ -801,7 +800,8 @@ void InterPrediction::motionCompensation( PredictionUnit &pu, PelUnitBuf &predBu
   return;
 }
 
-void InterPrediction::motionCompensation( CodingUnit &cu, const RefPicList &eRefPicList )
+void InterPrediction::motionCompensation( CodingUnit &cu, const RefPicList &eRefPicList 
+)
 {
   for( auto &pu : CU::traversePUs( cu ) )
   {
@@ -810,10 +810,12 @@ void InterPrediction::motionCompensation( CodingUnit &cu, const RefPicList &eRef
   }
 }
 
-void InterPrediction::motionCompensation( PredictionUnit &pu, const RefPicList &eRefPicList /*= REF_PIC_LIST_X*/ )
+void InterPrediction::motionCompensation( PredictionUnit &pu, const RefPicList &eRefPicList /*= REF_PIC_LIST_X*/ 
+)
 {
   PelUnitBuf predBuf = pu.cs->getPredBuf( pu );
-  motionCompensation( pu, predBuf, eRefPicList );
+  motionCompensation( pu, predBuf, eRefPicList 
+  );
 }
 
 

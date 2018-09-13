@@ -108,7 +108,6 @@ struct MotionInfo
 
   Mv      mv     [ NUM_REF_PIC_LIST_01 ];
   int16_t   refIdx [ NUM_REF_PIC_LIST_01 ];
-
   MotionInfo()        : isInter(  false ), interDir( 0 ), sliceIdx( 0 ), refIdx{ NOT_VALID, NOT_VALID } { }
   // ensure that MotionInfo(0) produces '\x000....' bit pattern - needed to work with AreaBuf - don't use this constructor for anything else
   MotionInfo( int i ) : isInter( i != 0 ), interDir( 0 ), sliceIdx( 0 ), refIdx{         0,         0 } { CHECKD( i != 0, "The argument for this constructor has to be '0'" ); }
@@ -142,5 +141,6 @@ struct MotionInfo
     return !( *this == mi );
   }
 };
+
 
 #endif // __MOTIONINFO__

@@ -49,6 +49,9 @@ namespace CS
   uint64_t getEstBits                   ( const CodingStructure &cs );
   UnitArea getArea                    ( const CodingStructure &cs, const UnitArea &area, const ChannelType chType );
   bool   isDualITree                  ( const CodingStructure &cs );
+#if DMVR_JVET_LOW_LATENCY_K0217
+  void   setRefinedMotionField        ( CodingStructure &cs );
+#endif
 }
 
 
@@ -80,6 +83,7 @@ namespace CU
 
   bool hasNonTsCodedBlock             (const CodingUnit& cu);
   uint32_t getNumNonZeroCoeffNonTs        (const CodingUnit& cu);
+
 
   PUTraverser traversePUs             (      CodingUnit& cu);
   TUTraverser traverseTUs             (      CodingUnit& cu);
@@ -126,6 +130,7 @@ namespace PU
 #if JVET_K0357_AMVR
   void applyImv                       (      PredictionUnit &pu, MergeCtx &mrgCtx, InterPrediction *interPred = NULL );
 #endif
+  void getAffineMergeCand             (const PredictionUnit &pu, MvField (*mvFieldNeighbours)[3], unsigned char &interDirNeighbours, int &numValidMergeCand );
 #if JVET_K_AFFINE
   bool isAffineMrgFlagCoded           (const PredictionUnit &pu );
   void getAffineMergeCand             (const PredictionUnit &pu, MvField (*mvFieldNeighbours)[3], unsigned char &interDirNeighbours, int &numValidMergeCand );
@@ -133,7 +138,8 @@ namespace PU
   void setAllAffineMv                 (      PredictionUnit &pu, Mv affLT, Mv affRT, Mv affLB, RefPicList eRefList );
 #endif
 #if JVET_K0346
-  bool getInterMergeSubPuMvpCand(const PredictionUnit &pu, MergeCtx &mrgCtx, bool& LICFlag, const int count);
+  bool getInterMergeSubPuMvpCand(const PredictionUnit &pu, MergeCtx &mrgCtx, bool& LICFlag, const int count
+  );
   bool getInterMergeSubPuRecurCand(const PredictionUnit &pu, MergeCtx &mrgCtx, const int count);
 #endif
   bool isBiPredFromDifferentDir       (const PredictionUnit &pu);

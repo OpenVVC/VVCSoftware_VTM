@@ -793,7 +793,8 @@ void Quant::quant(TransformUnit &tu, const ComponentID &compID, const CCoeffBuf 
     const int iQBits = QUANT_SHIFT + cQP.per + iTransformShift;
     // QBits will be OK for any internal bit depth as the reduction in transform shift is balanced by an increase in Qp_per due to QpBDOffset
 
-    const int64_t iAdd = int64_t(tu.cs->slice->getSliceType() == I_SLICE ? 171 : 85) << int64_t(iQBits - 9);
+    const int64_t iAdd = int64_t(tu.cs->slice->getSliceType() == I_SLICE 
+      ? 171 : 85) << int64_t(iQBits - 9);
 #if HEVC_USE_SIGN_HIDING
     const int qBits8 = iQBits - 8;
 #endif

@@ -472,11 +472,11 @@ bool QTBTPartitioner::canSplit( const PartSplit split, const CodingStructure &cs
     break;
   case CU_TRIH_SPLIT:
     if( ( cs.sps->getSpsNext().getMTTMode() & 1 ) != 1 )          return false;
-    if( area.height <= 2 * minTtSize || area.height > maxTtSize ) return false;
+    if( area.height <= 2 * minTtSize || area.height > maxTtSize || area.width > maxTtSize) return false;
     break;
   case CU_TRIV_SPLIT:
     if( ( cs.sps->getSpsNext().getMTTMode() & 1 ) != 1 )          return false;
-    if( area.width <= 2 * minTtSize || area.width > maxTtSize )   return false;
+    if( area.width <= 2 * minTtSize || area.width > maxTtSize || area.height > maxTtSize)  return false;
     break;
   default:
     break;

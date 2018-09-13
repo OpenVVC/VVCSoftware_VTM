@@ -366,7 +366,6 @@ void AreaBuf<T>::addAvg( const AreaBuf<const T> &other1, const AreaBuf<const T> 
 template<>
 void AreaBuf<Pel>::addAvg( const AreaBuf<const Pel> &other1, const AreaBuf<const Pel> &other2, const ClpRng& clpRng );
 
-
 template<typename T>
 void AreaBuf<T>::linearTransform( const int scale, const int shift, const int offset, bool bClip, const ClpRng& clpRng )
 {
@@ -384,6 +383,7 @@ void AreaBuf<T>::toLast( const ClpRng& clpRng )
 
 template<>
 void AreaBuf<Pel>::toLast( const ClpRng& clpRng );
+
 
 template<typename T>
 void AreaBuf<T>::removeHighFreq( const AreaBuf<T>& other, const bool bClip, const ClpRng& clpRng )
@@ -579,7 +579,8 @@ struct UnitBuf
   void addAvg               ( const UnitBuf<const T> &other1, const UnitBuf<const T> &other2, const ClpRngs& clpRngs, const bool chromaOnly = false, const bool lumaOnly = false);
   void extendSingleBorderPel();
   void extendBorderPel      ( unsigned margin );
-  void removeHighFreq       ( const UnitBuf<T>& other, const bool bClip, const ClpRngs& clpRngs);
+  void removeHighFreq       ( const UnitBuf<T>& other, const bool bClip, const ClpRngs& clpRngs
+                            );
 
         UnitBuf<      T> subBuf (const UnitArea& subArea);
   const UnitBuf<const T> subBuf (const UnitArea& subArea) const;
@@ -648,6 +649,7 @@ void UnitBuf<T>::reconstruct(const UnitBuf<const T> &pred, const UnitBuf<const T
   }
 }
 
+
 template<typename T>
 void UnitBuf<T>::addAvg(const UnitBuf<const T> &other1, const UnitBuf<const T> &other2, const ClpRngs& clpRngs, const bool chromaOnly /* = false */, const bool lumaOnly /* = false */)
 {
@@ -681,7 +683,8 @@ void UnitBuf<T>::extendBorderPel( unsigned margin )
 }
 
 template<typename T>
-void UnitBuf<T>::removeHighFreq( const UnitBuf<T>& other, const bool bClip, const ClpRngs& clpRngs)
+void UnitBuf<T>::removeHighFreq( const UnitBuf<T>& other, const bool bClip, const ClpRngs& clpRngs
+                               )
 {
   for( unsigned i = 0; i < bufs.size(); i++ )
   {

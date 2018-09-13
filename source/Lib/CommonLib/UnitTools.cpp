@@ -66,6 +66,30 @@ UnitArea CS::getArea( const CodingStructure &cs, const UnitArea &area, const Cha
   return isDualITree( cs ) ? area.singleChan( chType ) : area;
 }
 
+#if DMVR_JVET_LOW_LATENCY_K0217
+void CS::setRefinedMotionField(CodingStructure &cs)
+{
+  for (CodingUnit *cu : cs.cus)
+  {
+    for (auto &pu : CU::traversePUs(*cu))
+    {
+      if (pu.cs->sps->getSpsNext().getUseDMVR()
+        && pu.mergeFlag
+        && pu.mergeType == MRG_TYPE_DEFAULT_N
+        && !pu.frucMrgMode
+        && !pu.cu->LICFlag
+        && !pu.cu->affine
+        && PU::isBiPredFromDifferentDir(pu))
+      {
+        pu.mv[REF_PIC_LIST_0] += pu.mvd[REF_PIC_LIST_0];
+        pu.mv[REF_PIC_LIST_1] -= pu.mvd[REF_PIC_LIST_0];
+        pu.mvd[REF_PIC_LIST_0].setZero();
+        PU::spanMotionInfo(pu);
+      }
+    }
+  }
+}
+#endif
 // CU tools
 
 bool CU::isIntra(const CodingUnit &cu)
@@ -311,8 +335,8 @@ int PU::getIntraMPMs( const PredictionUnit &pu, unsigned* mpm, const ChannelType
 
     CHECK(2 >= numMPMs, "Invalid number of most probable modes");
 
-    const int offset = (int) NUM_LUMA_MODE - 5;
-    const int mod    = offset + 3;
+    const int offset = 61;
+    const int mod    = 64;
 
     if (leftIntraDir == aboveIntraDir)
     {
@@ -619,7 +643,6 @@ void PU::getInterMergeCandidates( const PredictionUnit &pu, MergeCtx& mrgCtx, co
   // compute the location of the current PU
 
   int cnt = 0;
-
   const Position posLT = pu.Y().topLeft();
   const Position posRT = pu.Y().topRight();
   const Position posLB = pu.Y().bottomLeft();
@@ -639,7 +662,6 @@ void PU::getInterMergeCandidates( const PredictionUnit &pu, MergeCtx& mrgCtx, co
 
     // get Inter Dir
     mrgCtx.interDirNeighbours[cnt] = miLeft.interDir;
-
     // get Mv from Left
     mrgCtx.mvFieldNeighbours[cnt << 1].setMvField(miLeft.mv[0], miLeft.refIdx[0]);
 
@@ -678,7 +700,7 @@ void PU::getInterMergeCandidates( const PredictionUnit &pu, MergeCtx& mrgCtx, co
 
       // get Inter Dir
       mrgCtx.interDirNeighbours[cnt] = miAbove.interDir;
-      // get Mv from Left
+      // get Mv from Above
       mrgCtx.mvFieldNeighbours[cnt << 1].setMvField( miAbove.mv[0], miAbove.refIdx[0] );
 
       if( slice.isInterB() )
@@ -720,7 +742,7 @@ void PU::getInterMergeCandidates( const PredictionUnit &pu, MergeCtx& mrgCtx, co
 
       // get Inter Dir
       mrgCtx.interDirNeighbours[cnt] = miAboveRight.interDir;
-      // get Mv from Left
+      // get Mv from Above-right
       mrgCtx.mvFieldNeighbours[cnt << 1].setMvField( miAboveRight.mv[0], miAboveRight.refIdx[0] );
 
       if( slice.isInterB() )
@@ -800,7 +822,8 @@ void PU::getInterMergeCandidates( const PredictionUnit &pu, MergeCtx& mrgCtx, co
     bool bMrgIdxMatchATMVPCan = ( mrgCandIdx == cnt );
     bool tmpLICFlag           = false;
 
-    isAvailableSubPu = cs.sps->getSpsNext().getUseATMVP() && getInterMergeSubPuMvpCand( pu, mrgCtx, tmpLICFlag, cnt );
+    isAvailableSubPu = cs.sps->getSpsNext().getUseATMVP() && getInterMergeSubPuMvpCand( pu, mrgCtx, tmpLICFlag, cnt 
+    );
 
     if( isAvailableSubPu )
     {
@@ -1078,7 +1101,6 @@ void PU::getInterMergeCandidates( const PredictionUnit &pu, MergeCtx& mrgCtx, co
 }
 
 
-
 static int xGetDistScaleFactor(const int &iCurrPOC, const int &iCurrRefPOC, const int &iColPOC, const int &iColRefPOC)
 {
   int iDiffPocD = iColPOC - iColRefPOC;
@@ -1124,7 +1146,6 @@ bool PU::getColocatedMVP(const PredictionUnit &pu, const RefPicList &eRefPicList
   {
     return false;
   }
-
   int iColRefIdx = mi.refIdx[eColRefPicList];
 
   if (iColRefIdx < 0)
@@ -2165,7 +2186,6 @@ bool PU::isAffineMrgFlagCoded( const PredictionUnit &pu )
   }
   return getFirstAvailableAffineNeighbour( pu ) != nullptr;
 }
-
 void PU::getAffineMergeCand( const PredictionUnit &pu, MvField (*mvFieldNeighbours)[3], unsigned char &interDirNeighbours, int &numValidMergeCand )
 {
   for ( int mvNum = 0; mvNum < 3; mvNum++ )
@@ -2416,7 +2436,8 @@ void clipColBlkMv(int& mvX, int& mvY, const PredictionUnit& pu)
 }
 #endif
 
-bool PU::getInterMergeSubPuMvpCand(const PredictionUnit &pu, MergeCtx& mrgCtx, bool& LICFlag, const int count)
+bool PU::getInterMergeSubPuMvpCand(const PredictionUnit &pu, MergeCtx& mrgCtx, bool& LICFlag, const int count
+)
 {
   const Slice   &slice = *pu.cs->slice;
 #if JVET_K0346

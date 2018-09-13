@@ -557,7 +557,9 @@ cTUTraverser CodingStructure::traverseTUs( const UnitArea& unit, const ChannelTy
 
 void CodingStructure::allocateVectorsAtPicLevel()
 {
-  const int  twice = ( !pcv->ISingleTree && slice->isIntra() && pcv->chrFormat != CHROMA_400 ) ? 2 : 1;
+  const int  twice = ( 
+    !pcv->ISingleTree && slice->isIntra()
+    && pcv->chrFormat != CHROMA_400 ) ? 2 : 1;
   size_t allocSize = twice * unitScale[0].scale( area.blocks[0].size() ).area();
 
   cus.reserve( allocSize );

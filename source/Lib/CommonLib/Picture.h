@@ -225,6 +225,14 @@ struct Picture : public UnitArea
   int  getPOC()                               const { return poc; }
   void setBorderExtension( bool bFlag)              { m_bIsBorderExtended = bFlag;}
   Pel* getOrigin( const PictureType &type, const ComponentID compID ) const;
+
+#if JVET_K0157
+  int           getSpliceIdx(uint32_t idx) const { return m_spliceIdx[idx]; }
+  void          setSpliceIdx(uint32_t idx, int poc) { m_spliceIdx[idx] = poc; }
+  void          createSpliceIdx(int nums);
+  bool          getSpliceFull();
+#endif
+
 public:
   bool m_bIsBorderExtended;
   bool referenced;
@@ -239,6 +247,11 @@ public:
   int  poc;
   uint32_t layer;
   uint32_t depth;
+
+#if JVET_K0157
+  int* m_spliceIdx;
+  int  m_ctuNums;
+#endif
 
 #if ENABLE_SPLIT_PARALLELISM
 #if ENABLE_WPP_PARALLELISM

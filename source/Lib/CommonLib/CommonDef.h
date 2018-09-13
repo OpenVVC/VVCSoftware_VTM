@@ -331,6 +331,7 @@ static const int AFFINE_MAX_NUM_COMB =                             12; ///< max 
 static const int AFFINE_MIN_BLOCK_SIZE =                            4; ///< Minimum affine MC block size
 #endif
 
+
 #if W0038_DB_OPT
 static const int MAX_ENCODER_DEBLOCKING_QUALITY_LAYERS =           8 ;
 #endif
@@ -401,7 +402,6 @@ static const unsigned C806_ALF_TEMPPRED_NUM =                      6;
 
 static const int NTAPS_LUMA               =                         8; ///< Number of taps for luma
 static const int NTAPS_CHROMA             =                         4; ///< Number of taps for chroma
-
 // ====================================================================================================================
 // Macro functions
 // ====================================================================================================================

@@ -106,7 +106,7 @@ public:
   int getGopId()        const { return m_gopID; }
   double  calculateLambda( const Slice* slice, const int GOPid, const int depth, const double refQP, const double dQP, int &iQP );
   void    setUpLambda( Slice* slice, const double dLambda, int iQP );
-  
+
 private:
 #endif
 #if HEVC_TILES_WPP
@@ -117,6 +117,10 @@ private:
 
 
 public:
+#if ENABLE_QPA
+  int                     m_adaptedLumaQP;
+
+#endif
   EncSlice();
   virtual ~EncSlice();
 
@@ -126,7 +130,12 @@ public:
 
   /// preparation of slice encoding (reference marking, QP and lambda)
   void    initEncSlice        ( Picture*  pcPic, const int pocLast, const int pocCurr,
-                                const int iGOPid,   Slice*& rpcSlice, const bool isField );
+                                const int iGOPid, Slice*& rpcSlice, const bool isField
+#if JVET_K0157
+    , bool isEncodeLtRef
+#endif
+  );
+
   void    resetQP             ( Picture* pic, int sliceQP, double lambda );
 
   // compress and encode slice
@@ -150,7 +159,6 @@ public:
   void    setSliceSegmentIdx  (uint32_t i)              { m_uiSliceSegmentIdx = i;          }
 
   SliceType getEncCABACTableIdx() const             { return m_encCABACTableIdx;        }
-
 private:
   double  xGetQPValueAccordingToLambda ( double lambda );
 };

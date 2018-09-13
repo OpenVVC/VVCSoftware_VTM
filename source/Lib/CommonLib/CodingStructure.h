@@ -58,7 +58,6 @@ enum PictureType
   PIC_ORG_RESI,
   NUM_PIC_TYPES
 };
-
 extern XUCache g_globalUnitCache;
 
 // ---------------------------------------------------------------------------
@@ -147,7 +146,6 @@ public:
   cCUTraverser    traverseCUs(const UnitArea& _unit, const ChannelType _chType) const;
   cPUTraverser    traversePUs(const UnitArea& _unit, const ChannelType _chType) const;
   cTUTraverser    traverseTUs(const UnitArea& _unit, const ChannelType _chType) const;
-
   // ---------------------------------------------------------------------------
   // encoding search utilities
   // ---------------------------------------------------------------------------

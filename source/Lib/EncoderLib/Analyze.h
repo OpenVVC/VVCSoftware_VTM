@@ -45,6 +45,7 @@
 #include <stdio.h>
 #include <memory.h>
 #include <assert.h>
+#include <cinttypes>
 #include "CommonLib/CommonDef.h"
 #include "CommonLib/ChromaFormat.h"
 #include "math.h"
@@ -84,9 +85,17 @@ public:
   virtual ~Analyze()  {}
   Analyze() { clear(); }
 
-  void  addResult( double psnr[MAX_NUM_COMPONENT], double bits, const double MSEyuvframe[MAX_NUM_COMPONENT])
+  void  addResult( double psnr[MAX_NUM_COMPONENT], double bits, const double MSEyuvframe[MAX_NUM_COMPONENT]
+#if JVET_K0157
+    , bool isEncodeLtRef
+#endif
+  )
   {
     m_dAddBits  += bits;
+#if JVET_K0157
+    if (isEncodeLtRef)
+      return;
+#endif
     for(uint32_t i=0; i<MAX_NUM_COMPONENT; i++)
     {
       m_dPSNRSum[i] += psnr[i];
@@ -173,11 +182,10 @@ public:
     PSNRyuv = (MSEyuv == 0) ? 999.99 : 10.0 * log10((maxval * maxval) / MSEyuv);
   }
 
-
 #if ENABLE_QPA || WCG_WPSNR
-  void    printOut ( char cDelim, const ChromaFormat chFmt, const bool printMSEBasedSNR, const bool printSequenceMSE, const BitDepths &bitDepths, const bool useWPSNR = false )
+  void    printOut ( char cDelim, const ChromaFormat chFmt, const bool printMSEBasedSNR, const bool printSequenceMSE, const bool printHexPsnr, const BitDepths &bitDepths, const bool useWPSNR = false )
 #else
-  void    printOut ( char cDelim, const ChromaFormat chFmt, const bool printMSEBasedSNR, const bool printSequenceMSE, const BitDepths &bitDepths )
+  void    printOut ( char cDelim, const ChromaFormat chFmt, const bool printMSEBasedSNR, const bool printSequenceMSE, const bool printHexPsnr, const BitDepths &bitDepths )
 #endif
   {
 #if !WCG_WPSNR
@@ -226,6 +234,11 @@ public:
 #endif
           msg( e_msg_level, "         \tTotal Frames |   "   "Bitrate     "  "Y-PSNR" );
 
+          if (printHexPsnr)
+          {
+            msg(e_msg_level, "xY-PSNR           ");
+          }
+
           if (printSequenceMSE)
           {
             msg( e_msg_level, "    Y-MSE\n" );
@@ -243,6 +256,19 @@ public:
                  useWPSNR ? getWPSNR(COMPONENT_Y) :
 #endif
                  getPsnr(COMPONENT_Y) / (double)getNumPic() );
+
+          if (printHexPsnr)
+          {
+            double dPsnr;
+            uint64_t xPsnr;
+            dPsnr = getPsnr(COMPONENT_Y) / (double)getNumPic();
+
+            copy(reinterpret_cast<uint8_t *>(&dPsnr),
+              reinterpret_cast<uint8_t *>(&dPsnr) + sizeof(dPsnr),
+              reinterpret_cast<uint8_t *>(&xPsnr));
+
+            msg(e_msg_level, "   %16" PRIx64 " ", xPsnr);
+          }
 
           if (printSequenceMSE)
           {
@@ -267,6 +293,11 @@ public:
 #endif
           msg( e_msg_level, "\tTotal Frames |   "   "Bitrate     "  "Y-PSNR" );
 
+          if (printHexPsnr)
+          {
+            msg(e_msg_level, "xY-PSNR           ");
+          }
+
           if (printSequenceMSE)
           {
             msg( e_msg_level, "    Y-MSE\n" );
@@ -284,6 +315,19 @@ public:
                  useWPSNR ? getWPSNR(COMPONENT_Y) :
 #endif
                  getPsnr(COMPONENT_Y) / (double)getNumPic() );
+
+          if (printHexPsnr)
+          {
+            double dPsnr;
+            uint64_t xPsnr;
+            dPsnr = getPsnr(COMPONENT_Y) / (double)getNumPic();
+
+            copy(reinterpret_cast<uint8_t *>(&dPsnr),
+              reinterpret_cast<uint8_t *>(&dPsnr) + sizeof(dPsnr),
+              reinterpret_cast<uint8_t *>(&xPsnr));
+
+            msg(e_msg_level, "   %16" PRIx64 " ", xPsnr);
+          }
 
           if (printSequenceMSE)
           {
@@ -313,6 +357,11 @@ public:
 #endif
             msg( e_msg_level, "         \tTotal Frames |   "   "Bitrate     "  "Y-PSNR    "  "U-PSNR    "  "V-PSNR    "  "YUV-PSNR " );
 
+            if (printHexPsnr)
+            {
+              msg(e_msg_level, "xY-PSNR           "  "xU-PSNR           "  "xV-PSNR           ");
+            }
+
             if (printSequenceMSE)
             {
               msg( e_msg_level, " Y-MSE     "  "U-MSE     "  "V-MSE    "  "YUV-MSE \n" );
@@ -339,6 +388,21 @@ public:
 #endif
                    getPsnr(COMPONENT_Cr) / (double)getNumPic(),
                    PSNRyuv );
+
+            if (printHexPsnr)
+            {
+              double dPsnr[MAX_NUM_COMPONENT];
+              uint64_t xPsnr[MAX_NUM_COMPONENT];
+              for (int i = 0; i < MAX_NUM_COMPONENT; i++)
+              {
+                dPsnr[i] = getPsnr((ComponentID)i) / (double)getNumPic();
+
+                copy(reinterpret_cast<uint8_t *>(&dPsnr[i]),
+                  reinterpret_cast<uint8_t *>(&dPsnr[i]) + sizeof(dPsnr[i]),
+                  reinterpret_cast<uint8_t *>(&xPsnr[i]));
+              }
+              msg(e_msg_level, "   %16" PRIx64 "  %16" PRIx64 "  %16" PRIx64, xPsnr[COMPONENT_Y], xPsnr[COMPONENT_Cb], xPsnr[COMPONENT_Cr]);
+            }
 
             if (printSequenceMSE)
             {
@@ -373,6 +437,11 @@ public:
             m_ext360.printHeader(e_msg_level);
 #endif
 
+            if (printHexPsnr)
+            {
+              msg(e_msg_level, "xY-PSNR           "  "xU-PSNR           "  "xV-PSNR           ");
+            }
+
             if (printSequenceMSE)
             {
               msg( e_msg_level, " Y-MSE     "  "U-MSE     "  "V-MSE    "  "YUV-MSE \n" );
@@ -399,6 +468,21 @@ public:
 #endif
                    getPsnr(COMPONENT_Cr) / (double)getNumPic(),
                    PSNRyuv );
+
+            if (printHexPsnr)
+            {
+              double dPsnr[MAX_NUM_COMPONENT];
+              uint64_t xPsnr[MAX_NUM_COMPONENT];
+              for (int i = 0; i < MAX_NUM_COMPONENT; i++)
+              {
+                dPsnr[i] = getPsnr((ComponentID)i) / (double)getNumPic();
+
+                copy(reinterpret_cast<uint8_t *>(&dPsnr[i]),
+                  reinterpret_cast<uint8_t *>(&dPsnr[i]) + sizeof(dPsnr[i]),
+                  reinterpret_cast<uint8_t *>(&xPsnr[i]));
+              }
+              msg(e_msg_level, "   %16" PRIx64 "  %16" PRIx64 "  %16" PRIx64 , xPsnr[COMPONENT_Y], xPsnr[COMPONENT_Cb], xPsnr[COMPONENT_Cr]);
+            }
 
 #if EXTENSION_360_VIDEO
             m_ext360.printPSNRs(getNumPic(), e_msg_level);
@@ -427,7 +511,7 @@ public:
   }
 
 
-  void    printSummary(const ChromaFormat chFmt, const bool printSequenceMSE, const BitDepths &bitDepths, const std::string &sFilename)
+  void    printSummary(const ChromaFormat chFmt, const bool printSequenceMSE, const bool printHexPsnr, const BitDepths &bitDepths, const std::string &sFilename)
   {
     FILE* pFile = fopen (sFilename.c_str(), "at");
 

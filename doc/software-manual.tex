@@ -3021,4 +3021,226 @@ If the decoder is compiled with the macro RExt__DECODER_DEBUG_BIT_STATISTICS def
 The Linux makefile will compile both the analyser and standard version when the `all' or `everything' target is used (where the latter will also build  high-bit-depth executables).
 
 
+
+\section{Block statistics extension}
+\label{sec:block-stat-extens}
+
+The block statistics extension enables straightforward visualization and statistical analysis of coding tool
+usage in encoded bitstreams. The extension enables the reference
+software encoder and decoder to write out statistics files in a configurable
+way, which in turn can be loaded into a suitable YUV player for overlay of the
+reconstructed YUV sequence, or can be used for statistical analysis at a
+selectable scope (e.g. block/picture/sequence level). An example implementation
+for such visualization is available with the open-source YUView player
+(https://github.com/IENT/YUView). 
+
+
+\subsection{Usage}
+\label{sec:usage}
+
+The software has to be compiled with the macros ENABLE_TRACING and
+K0149_BLOCK_STATISTICS  defined as 1. The statistics can be written by either
+encoder or decoder.
+
+The extension adds additional trace channels to the ``dtrace'' functionality of
+the software. The following trace channels were added:
+\begin{description}
+\item[D_BLOCK_STATISTICS_ALL] All syntax elements are written, no matter whether
+  they are actually encoded or derived.
+\item[D_BLOCK_STATISTICS_CODED] Tries to write only syntax elements, which have
+  also been encoded.
+\end{description}
+
+The following additional encoder options are available (part of ``dtrace''). See
+the file dtrace_next.h for more details.
+
+\begin{OptionTableNoShorthand}{Decoder options}{tab:decoder-block-statistics}
+\Option{TraceFile} &
+%\ShortOption{\None} &
+\Default{\None} &
+File name of the produced trace file.
+\\
+
+\Option{TraceRule} &
+%\ShortOption{-b} &
+\Default{\NotSet} &
+Specifies which traces should be saved, and for which POCs.
+\\
+
+\end{OptionTableNoShorthand}
+
+Concrete examples of calls for  generating a block statistics file are:
+\begin{verbatim}
+bin/DecoderAppStatic -b str/BasketballDrive_1920x1080_QP37.vvc \
+    --TraceFile="stats/BasketballDrive_1920x1080_QP37_coded.vtmbmsstats" \
+    --TraceRule="D_BLOCK_STATISTICS_CODED:poc>=0"
+
+bin/DecoderAppStatic -b str/BasketballDrive_1920x1080_QP37.vvc \
+    --TraceFile="stats/BasketballDrive_1920x1080_QP37_all.vtmbmsstats" \
+    --TraceRule="D_BLOCK_STATISTICS_ALL:poc>=0"   
+\end{verbatim}
+
+
+\subsection{Block statistics file formats}
+\label{sec:block-stat-file}
+The trace file will contain a header listing information of all available block
+statistics. For each statistic it lists a type and a scale for vectors or range
+for integers if applicable: 
+\begin{verbatim}
+# VTMBMS Block Statistics
+# Sequence size: [832x 480]
+# Block Statistic Type: PredMode; Flag; 
+# Block Statistic Type: MergeFlag; Flag; 
+# Block Statistic Type: MVL0; Vector; Scale: 4
+# Block Statistic Type: MVL1; Vector; Scale: 4
+# Block Statistic Type: IPCM; Flag; 
+# Block Statistic Type: Y_IntraMode; Integer; [0, 73]
+# Block Statistic Type: Cb_IntraMode; Integer; [0, 73]
+\end{verbatim}
+
+Two formats are available for the statistics for each block, a human readable
+format and a CSV based format. The header remains the same for both cases. 
+
+For both formats each row contains the information for one block statistic. The
+order of the data is: picture order count (POC), location of top left corner of
+the block, size of the block, name of the statistic, and value of the
+statistic. 
+The macro BLOCK_STATS_AS_CSV is available in order to choose the required format.
+The human readable format can also be easily processed with other software, for
+example YUView, using regular expressions. The CSV based formats provides the
+universal interface required by spreadsheet applications.
+
+The human readable format is based on the format used for the other dtrace
+statistics. Some examples for this format are:
+\begin{verbatim}
+BlockStat: POC 16 @( 112,   0) [ 8x 8] SkipFlag=1
+BlockStat: POC 16 @( 112,   0) [ 8x 8] InterDir=1
+BlockStat: POC 16 @( 112,   0) [ 8x 8] MergeFlag=1
+BlockStat: POC 16 @( 112,   0) [ 8x 8] MergeIdx=0
+BlockStat: POC 16 @( 112,   0) [ 8x 8] MergeType=0
+BlockStat: POC 16 @( 112,   0) [ 8x 8] MVPIdxL0=255
+BlockStat: POC 16 @( 112,   0) [ 8x 8] MVPNumL0=255
+BlockStat: POC 16 @( 112,   0) [ 8x 8] RefIdxL0=0
+BlockStat: POC 16 @( 112,   0) [ 8x 8] MVDL0={   0,   0}
+BlockStat: POC 16 @( 112,   0) [ 8x 8] MVL0={ -70,  18}
+BlockStat: POC 16 @( 112,   8) [ 8x 8] PredMode=0
+BlockStat: POC 16 @( 112,   8) [ 8x 8] PartSize=0
+\end{verbatim}
+
+Some examples of the CSV based format are:
+\begin{verbatim}
+BlockStat;16; 112;   0; 8; 8;SkipFlag;1
+BlockStat;16; 112;   0; 8; 8;InterDir;1
+BlockStat;16; 112;   0; 8; 8;MergeFlag;1
+BlockStat;16; 112;   0; 8; 8;MergeIdx;0
+BlockStat;16; 112;   0; 8; 8;MergeType;0
+BlockStat;16; 112;   0; 8; 8;MVPIdxL0;255
+BlockStat;16; 112;   0; 8; 8;MVPNumL0;255
+BlockStat;16; 112;   0; 8; 8;RefIdxL0;0
+BlockStat;16; 112;   0; 8; 8;MVDL0;   0;   0
+BlockStat;16; 112;   0; 8; 8;MVL0; -70;  18
+BlockStat;16; 112;   8; 8; 8;PredMode;0
+BlockStat;16; 112;   8; 8; 8;PartSize;0
+\end{verbatim}
+
+\subsection{Visualization}
+\label{sec:visualization}
+
+The block statistics can be viewed with YUView, which is freely available under
+GPLv3: \url{https://github.com/IENT/YUView}. The latest releases and the master
+branch have the functionality required for  viewing the block statistics. YUView
+assumes that the file extension of block statistics file is
+“.vtmbmsstats”. However, if a file is not recognized you can choose from a list
+of supported file formats.
+
+
+Statistics can be overlaid with YUV sequences. Some example snapshots are:
+
+\begin{figure}[htpb]
+  \centering
+  \includegraphics[width=0.8\linewidth]{figures/YUView}
+  \caption{YUView}
+  \label{fig:yuview}
+\end{figure}
+
+\begin{figure}[htpb]
+  \centering
+  \includegraphics[width=0.5\linewidth]{figures/raceHorsesShot2MotionVectors}
+  \caption{Motion vectors}
+  \label{fig:motion-vectors}
+\end{figure}
+
+
+\begin{figure}[htpb]
+  \centering
+  \includegraphics[width=0.5\linewidth]{figures/raceHorsesShot3SkipFlag}
+  \caption{Skip flag}
+  \label{fig:skip-flag}
+\end{figure}
+
+\subsection{Adding statistics}
+\label{sec:adding-statistics}
+
+In order to add further block statistics, do the following:
+
+
+\begin{description}
+\item[source/Lib/CommonLib/dtrace_blockstatistics.h]
+  Add your statistic to the BlockStatistic enum:	
+\begin{verbatim}
+enum class BlockStatistic {
+  // general
+  PredMode,
+  PartSize,
+  Depth,
+\end{verbatim}
+  
+Further, add your statistic to the map blockstatistic2description:
+\begin{verbatim}
+static const std::map<BlockStatistic, 
+  std::tuple<std::string, BlockStatisticType, std::string>> 
+  blockstatistic2description =
+{
+  { BlockStatistic::PredMode, 
+    std::tuple<std::string, BlockStatisticType, std::string>
+    {"PredMode", BlockStatisticType::Flag, ""}},
+  { BlockStatistic::MergeFlag,
+    std::tuple<std::string, BlockStatisticType, std::string>
+    {"MergeFlag", BlockStatisticType::Flag, ""}},
+  { BlockStatistic::MVL0,
+    std::tuple<std::string, BlockStatisticType, std::string>
+    {"MVL0", BlockStatisticType::Vector, "Scale: 4"}},
+  YOURS
+\end{verbatim}
+
+
+\item[source/Lib/CommonLib/dtrace_blockstatistics.cpp] All code for
+  writing syntax elements is kept in this file in
+  getAndStoreBlockStatistics. This function is called once for each
+  CTU, after it has been en/decoded. The following macros have been
+  defined to facilitate writing of block statistics:
+\begin{verbatim}
+DTRACE_BLOCK_SCALAR(ctx,channel,cs_cu_pu,stat_type,val)   
+DTRACE_BLOCK_SCALAR_CHROMA(ctx,channel,cs_cu_pu,stat_type,val)
+DTRACE_BLOCK_VECTOR(ctx,channel,cu_pu,stat_type,v_x,v_y)    
+DTRACE_BLOCK_AFFINETF(ctx,channel,pu,stat_type,v_x0,v_y0,v_x1,v_y1,v_x2,v_y2) 
+\end{verbatim}
+
+An example:
+\begin{verbatim}
+DTRACE_BLOCK_SCALAR(g_trace_ctx, D_BLOCK_STATISTICS_ALL, 
+  cu, GetBlockStatisticName(BlockStatistic::PredMode), cu.predMode);
+\end{verbatim}
+
+
+\item[Block statistics for debugging] The statistics can also be used
+  to write out other data, not just syntax elements. Add your
+  statistics to dtrace_blockstatistics.h. Where it should be used the
+  following headers have to be included:
+\begin{verbatim}
+#include "dtrace_next.h"
+#include "dtrace_blockstatistics.h"
+\end{verbatim}
+\end{description}
+
 \end{document}

@@ -66,12 +66,6 @@ enum CodingStatisticsType
   STATS__CABAC_BITS__REF_FRM_IDX,
   STATS__CABAC_BITS__MVD,
   STATS__CABAC_BITS__MVD_EP,
-#if JVET_K_AFFINE
-  STATS__CABAC_BITS__AFFINE_FLAG,
-#if JVET_K0337_AFFINE_6PARA
-  STATS__CABAC_BITS__AFFINE_TYPE,
-#endif
-#endif
   STATS__CABAC_BITS__TRANSFORM_SUBDIV_FLAG,
   STATS__CABAC_BITS__QT_ROOT_CBF,
   STATS__CABAC_BITS__DELTA_QP_EP,
@@ -79,21 +73,14 @@ enum CodingStatisticsType
   STATS__CABAC_BITS__QT_CBF,
   STATS__CABAC_BITS__CROSS_COMPONENT_PREDICTION,
   STATS__CABAC_BITS__TRANSFORM_SKIP_FLAGS,
-
   STATS__CABAC_BITS__LAST_SIG_X_Y,
   STATS__CABAC_BITS__SIG_COEFF_GROUP_FLAG,
   STATS__CABAC_BITS__SIG_COEFF_MAP_FLAG,
-#if JVET_K0072
-  STATS__CABAC_BITS__PAR_FLAG,
-#endif
   STATS__CABAC_BITS__GT1_FLAG,
   STATS__CABAC_BITS__GT2_FLAG,
   STATS__CABAC_BITS__SIGN_BIT,
   STATS__CABAC_BITS__ESCAPE_BITS,
   STATS__CABAC_BITS__SAO,
-#if JVET_K0371_ALF
-  STATS__CABAC_BITS__ALF,
-#endif
   STATS__CABAC_TRM_BITS,
   STATS__CABAC_FIXED_BITS,
   STATS__CABAC_PCM_ALIGN_BITS,
@@ -104,6 +91,22 @@ enum CodingStatisticsType
   STATS__CABAC_EP_BIT_ALIGNMENT,
   STATS__CABAC_BITS__ALIGNED_SIGN_BIT,
   STATS__CABAC_BITS__ALIGNED_ESCAPE_BITS,
+  STATS__CABAC_BITS__OTHER,
+  STATS__CABAC_BITS__INVALID,
+  STATS__TOOL_TOTAL_FRAME,// This is a special case and is not included in the report.
+#if JVET_K_AFFINE
+  STATS__CABAC_BITS__AFFINE_FLAG,
+  STATS__TOOL_AFF,
+#if JVET_K0337_AFFINE_6PARA
+  STATS__CABAC_BITS__AFFINE_TYPE,
+#endif
+#endif
+#if JVET_K0072
+  STATS__CABAC_BITS__PAR_FLAG,
+#endif
+#if JVET_K0371_ALF
+  STATS__CABAC_BITS__ALF,
+#endif
 #if JVET_K0357_AMVR
   STATS__CABAC_BITS__IMV_FLAG,
 #endif
@@ -111,11 +114,21 @@ enum CodingStatisticsType
   STATS__CABAC_BITS__EMT_CU_FLAG,
   STATS__CABAC_BITS__EMT_TU_INDEX,
 #endif
-  STATS__CABAC_BITS__OTHER,
-  STATS__CABAC_BITS__INVALID,
-  STATS__TOOL_TOTAL_FRAME,// This is a special case and is not included in the report.
+#if JVET_K1000_SIMPLIFIED_EMT
+  STATS__TOOL_EMT,
+#endif
   STATS__TOOL_TOTAL,
   STATS__NUM_STATS
+};
+
+enum CodingStatisticsMode
+{
+  STATS__MODE_NONE  = 0,
+  STATS__MODE_BITS  = 1,
+  STATS__MODE_TOOLS = 2,
+
+  STATS__MODE_ALL   =
+    STATS__MODE_BITS | STATS__MODE_TOOLS
 };
 
 static inline const char* getName(CodingStatisticsType name)
@@ -326,11 +339,13 @@ public:
     friend class CodingStatistics;
   };
 
+  int m_mode;
+
 private:
 
   CodingStatisticsData data;
 
-  CodingStatistics() : data()
+  CodingStatistics() : m_mode(STATS__MODE_ALL), data()
   {
   }
 
@@ -408,11 +423,8 @@ private:
     printf( "\n" );
   }
 
-public:
-
-  ~CodingStatistics()
+  void OutputBitStats()
   {
-#if RExt__DECODER_DEBUG_BIT_STATISTICS
     const int64_t es = CODINGSTATISTICS_ENTROPYSCALE;
 
     int64_t countTotal = 0;
@@ -594,9 +606,82 @@ public:
     OutputDashedLine( "GRAND TOTAL" );
     epTotalBits += cavlcTotalBits;
     OutputLine      ( "TOTAL",                  '~', "~~GT~~", "~~GT~~", "~~GT~~", cabacTotalBits, epTotalBits );
+  }
+
+  void OutputToolStats()
+  {
+    printf("\n");
+    printf( " %-45s-   Width Height   Type        Count  Impacted pixels  %% Impacted pixels\n", "Tools statistics" );
+    OutputDashedLine( "" );
+
+    const uint64_t toolCount = STATS__TOOL_TOTAL - (STATS__TOOL_TOTAL_FRAME + 1);
+    StatTool subTotalTool[toolCount];
+    StatTool statTotalTool[toolCount][CODING_STATS_NUM_SUBCLASSES];
+    uint64_t totalPixels = GetStatisticTool( STATS__TOOL_TOTAL_FRAME ).pixels;
+    for( int i = 0; i < toolCount; i++ )
+    {
+      const int type = i + (STATS__TOOL_TOTAL_FRAME + 1);
+      const char *pName = getName( CodingStatisticsType( type ) );
+
+      for( uint32_t c = 0; c < CODING_STATS_NUM_SUBCLASSES; c++ )
+      {
+        StatTool &sTool   = data.statistics_tool[type][c];
+        if( sTool.count == 0 )
+        {
+          continue;
+        }
+
+        uint32_t wIdx = CodingStatisticsClassType::GetSubClassWidth( c );
+        uint32_t hIdx = CodingStatisticsClassType::GetSubClassHeight( c );
+        OutputLine( pName, ':', wIdx, hIdx, CodingStatisticsClassType::GetSubClassString( c ), sTool, totalPixels );
+
+        statTotalTool[i][c] += sTool;
+        subTotalTool[i] += sTool;
+      }
+
+      if (subTotalTool[i].count != 0)
+      {
+        OutputLine( pName, '~', "~~ST~~", "~~ST~~", "~~ST~~", subTotalTool[i], totalPixels );
+      }
+    }
+
+    for( int i = 0; i < toolCount; i++ )
+    {
+      const int type = i + (STATS__TOOL_TOTAL_FRAME + 1);
+      const char *pName = getName( CodingStatisticsType( type ) );
+
+      if (subTotalTool[i].count != 0)
+        OutputDashedLine( "Break down by tool/Channel type" );
+
+      for( uint32_t c = 0; c < CODING_STATS_NUM_SUBCLASSES; c += CODING_STATS_NUM_SIZES )
+      {
+        StatTool typeTotalTool;
+        for( uint32_t w = 0; w < CODING_STATS_NUM_WIDTHS; w++ )
+        {
+          for( uint32_t h = 0; h < CODING_STATS_NUM_HEIGHTS; h++ )
+            typeTotalTool += statTotalTool[i][c + h * CODING_STATS_NUM_WIDTHS + w];
+        }
+
+        if( typeTotalTool.count != 0 )
+        {
+          OutputLine( pName, '=', "-", "-", CodingStatisticsClassType::GetSubClassString( c ), typeTotalTool, totalPixels );
+        }
+      }
+    }
+  }
+
+public:
+
+  ~CodingStatistics()
+  {
+#if RExt__DECODER_DEBUG_BIT_STATISTICS
+    if (m_mode & STATS__MODE_BITS)
+      OutputBitStats();
 #endif //RExt__DECODER_DEBUG_BIT_STATISTICS
 
 #ifdef RExt__DECODER_DEBUG_TOOL_STATISTICS
+    if (m_mode & STATS__MODE_TOOLS)
+      OutputToolStats();
 #endif //RExt__DECODER_DEBUG_TOOL_STATISTICS
   }
 

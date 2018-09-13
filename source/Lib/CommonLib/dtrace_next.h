@@ -145,8 +145,12 @@ enum DTRACE_CHANNEL
   D_RDOQ_COST,
   D_TMP,
   D_CRC
+#if K0149_BLOCK_STATISTICS
+  ,
+  D_BLOCK_STATISTICS_ALL,
+  D_BLOCK_STATISTICS_CODED,
+#endif
 };
-
 #define _CNL_DEF(_s) {_s,(std::string(#_s))}
 
 inline void tracing_uninit( CDTrace *pDtrace )
@@ -245,6 +249,11 @@ inline CDTrace* tracing_init( std::string& sTracingFile, std::string& sTracingRu
     _CNL_DEF( D_RDOQ_COST ),
     _CNL_DEF( D_TMP ),
     _CNL_DEF( D_CRC )
+  #if K0149_BLOCK_STATISTICS
+    ,
+    _CNL_DEF( D_BLOCK_STATISTICS_ALL ),
+    _CNL_DEF( D_BLOCK_STATISTICS_CODED ),
+  #endif
   };
   dtrace_channels_t channels( next_channels, &next_channels[sizeof( next_channels ) / sizeof( next_channels[0] )] );
 

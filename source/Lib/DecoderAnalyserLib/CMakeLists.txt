@@ -18,7 +18,7 @@ target_compile_definitions( ${LIB_NAME} PUBLIC RExt__DECODER_DEBUG_BIT_STATISTIC
 target_compile_definitions( ${LIB_NAME} PUBLIC RExt__DECODER_DEBUG_TOOL_STATISTICS=1 )
 
 if( ENABLE_VTM )
-  target_compile_definitions( ${LIB_NAME} PUBLIC JEM_TOOLS=0 )
+  target_compile_definitions( ${LIB_NAME} PUBLIC BMS_TOOLS=0 )
 endif()
 
 if( EXTENSION_360_VIDEO )

@@ -225,6 +225,7 @@ void DecSlice::decompressSlice( Slice* slice, InputBitstream* bitstream )
 #endif
 
 
+
     isLastCtuOfSliceSegment = cabacReader.coding_tree_unit( cs, ctuArea, pic->m_prevQP, ctuRsAddr );
 
     m_pcCuDecoder->decompressCtu( cs, ctuArea );

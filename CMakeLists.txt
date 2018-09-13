@@ -70,9 +70,11 @@ if( OpenMP_FOUND )
 endif()
 
 # Enable warnings for some generators and toolsets.
-bb_enable_warnings( gcc warnings-as-errors -Wno-sign-compare )
+# bb_enable_warnings( gcc warnings-as-errors -Wno-sign-compare )
 # bb_enable_warnings( gcc -Wno-unused-variable )
 # bb_enable_warnings( gcc-4.8 warnings-as-errors -Wno-unused-variable )
+# for gcc 8.2:
+bb_enable_warnings( gcc warnings-as-errors -Wno-sign-compare -Wno-class-memaccess)
 
 if( XCODE )
   bb_enable_warnings( clang warnings-as-errors
@@ -104,6 +106,7 @@ endif()
 if( MSVC )
   add_compile_options( "/MP" )
   add_compile_options( "/EHsc" )
+  add_compile_options( "/MT" )
 endif()
 
 # set address sanitizer compiler arguments

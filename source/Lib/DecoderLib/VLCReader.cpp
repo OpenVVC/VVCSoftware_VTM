@@ -827,7 +827,6 @@ void HLSyntaxReader::parseSPSNext( SPSNext& spsNext, const bool usePCM )
   }
 #endif
 #endif
-
   for( int k = 0; k < SPSNext::NumReservedFlags; k++ )
   {
     READ_FLAG( symbol,  "reserved_flag" );                          if( symbol != 0 ) EXIT("Incompatible version: SPSNext reserved flag not equal to zero (bitstream was probably created with newer software version)" );
@@ -1819,7 +1818,7 @@ void HLSyntaxReader::parseSliceHeader (Slice* pcSlice, ParameterSetManager *para
       pcSlice->setSubPuMvpSliceSubblkSizeEnable(uiCode);
       if (pcSlice->getSubPuMvpSliceSubblkSizeEnable())
       {
-        READ_CODE(3, uiCode, "slice_atmvp_subblk_size_log2");
+        READ_CODE(3, uiCode, "log2_slice_sub_pu_tmvp_size_minus2");
         pcSlice->setSubPuMvpSubblkLog2Size(uiCode + MIN_CU_LOG2);
       }
       else

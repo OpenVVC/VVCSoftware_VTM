@@ -703,6 +703,13 @@ void TrQuant::xT( const TransformUnit &tu, const ComponentID &compID, const CPel
   const unsigned ucMode          = getEmtMode ( tu, compID );
   const unsigned ucTrIdx         = getEmtTrIdx( tu, compID );
 
+  if( ucTrIdx != DCT2 )
+  {
+#if RExt__DECODER_DEBUG_TOOL_STATISTICS
+    CodingStatistics::IncrementStatisticTool( CodingStatisticsClassType{ STATS__TOOL_EMT, uint32_t( iWidth ), uint32_t( iHeight ), compID } );
+#endif
+  }
+
 #if INTRA67_3MPM
 #if HEVC_USE_4x4_DSTVII
   xTrMxN_EMT(channelBitDepth, resi.buf, resi.stride, dstCoeff.buf, iWidth, iHeight, useDST, maxLog2TrDynamicRange, ucMode, ucTrIdx

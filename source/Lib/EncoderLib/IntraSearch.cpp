@@ -915,7 +915,8 @@ void IntraSearch::xEncIntraHeader(CodingStructure &cs, Partitioner &partitioner,
     // CU header
     if( isFirst )
     {
-      if( !cs.slice->isIntra() )
+      if( !cs.slice->isIntra() 
+        )
       {
         if( cs.pps->getTransquantBypassEnabledFlag() )
         {

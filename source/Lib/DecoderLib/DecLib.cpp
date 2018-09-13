@@ -48,6 +48,9 @@
 #include <fcntl.h>
 #include "AnnexBread.h"
 #include "NALread.h"
+#if K0149_BLOCK_STATISTICS
+#include "CommonLib/dtrace_blockstatistics.h"
+#endif
 
 #if RExt__DECODER_DEBUG_TOOL_STATISTICS
 #include "CommonLib/CodingStatistics.h"
@@ -512,6 +515,10 @@ void DecLib::executeLoopFilters()
   // deblocking filter
   m_cLoopFilter.loopFilterPic( cs );
 
+#if DMVR_JVET_LOW_LATENCY_K0217
+  CS::setRefinedMotionField(cs);
+#endif
+
   if( cs.sps->getUseSAO() )
   {
     m_cSAO.SAOProcess( cs, cs.picture->getSAO() );
@@ -898,6 +905,15 @@ bool DecLib::xDecodeSlice(InputNALUnit &nalu, int &iSkipFrame, int iPOCLastDispl
   }
   m_apcSlicePilot->setIndependentSliceIdx(uiIndependentSliceIdx);
 
+#if K0149_BLOCK_STATISTICS
+  PPS *pps = m_parameterSetManager.getPPS(m_apcSlicePilot->getPPSId());
+  CHECK(pps == 0, "No PPS present");
+  SPS *sps = m_parameterSetManager.getSPS(pps->getSPSId());
+  CHECK(sps == 0, "No SPS present");
+
+  writeBlockStatisticsHeader(sps);
+#endif
+
   DTRACE_UPDATE( g_trace_ctx, std::make_pair( "poc", m_apcSlicePilot->getPOC() ) );
 
 #if HEVC_DEPENDENT_SLICES
@@ -1085,7 +1101,7 @@ bool DecLib::xDecodeSlice(InputNALUnit &nalu, int &iSkipFrame, int iPOCLastDispl
     pcSlice->checkCRA(pcSlice->getRPS(), m_pocCRA, m_associatedIRAPType, m_cListPic );
     // Set reference list
     pcSlice->setRefPicList( m_cListPic, true, true );
-
+	
     if (!pcSlice->isIntra())
     {
       bool bLowDelay = true;

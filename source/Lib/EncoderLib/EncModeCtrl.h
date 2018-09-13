@@ -385,6 +385,8 @@ struct CodedCUInfo
 
   bool validMv[NUM_REF_PIC_LIST_01][MAX_STORED_CU_INFO_REFS];
   Mv   saveMv [NUM_REF_PIC_LIST_01][MAX_STORED_CU_INFO_REFS];
+
+
 #if ENABLE_SPLIT_PARALLELISM
 
   uint64_t
@@ -431,6 +433,7 @@ public:
 
   bool getMv  ( const UnitArea& area, const RefPicList refPicList, const int iRefIdx,       Mv& rMv ) const;
   void setMv  ( const UnitArea& area, const RefPicList refPicList, const int iRefIdx, const Mv& rMv );
+
 };
 
 #if REUSE_CU_RESULTS

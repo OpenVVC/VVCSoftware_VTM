@@ -313,7 +313,6 @@ struct CodingUnit : public UnitArea
 #if JVET_K1000_SIMPLIFIED_EMT
   uint8_t          emtFlag;
 #endif
-
   // needed for fast imv mode decisions
   int8_t          imvNumCand;
 

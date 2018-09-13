@@ -320,3 +320,18 @@ void CDTrace::dtrace_repeat( int k, int i_times, const char *format, /*va_list a
   }
   return;
 }
+
+#if K0149_BLOCK_STATISTICS
+void CDTrace::dtrace_header( const char *format, /*va_list args*/... )
+{
+  if( m_trace_file )
+  {
+    va_list args;
+    va_start ( args, format );
+    vfprintf ( m_trace_file, format, args );
+    fflush( m_trace_file );
+    va_end ( args );
+  }
+  return;
+}
+#endif

@@ -96,6 +96,7 @@ bool DecAppCfg::parseCfg( int argc, char* argv[] )
   ("SEIColourRemappingInfoFilename",  m_colourRemapSEIFileName,        string(""), "Colour Remapping YUV output file name. If empty, no remapping is applied (ignore SEI message)\n")
   ("OutputDecodedSEIMessagesFilename",  m_outputDecodedSEIMessagesFilename,    string(""), "When non empty, output decoded SEI messages to the indicated file. If file is '-', then output to stdout\n")
   ("ClipOutputVideoToRec709Range",      m_bClipOutputVideoToRec709Range,  false,   "If true then clip output video to the Rec. 709 Range on saving")
+  ("PYUV",                      m_packedYUVMode,                       false,      "If true then output 10-bit and 12-bit YUV data as 5-byte and 3-byte (respectively) packed YUV data. Ignored for interlaced output.")
 #if ENABLE_TRACING
   ("TraceChannelsList",         bTracingChannelsList,                        false, "List all available tracing channels" )
   ("TraceRule",                 sTracingRule,                         string( "" ), "Tracing rule (ex: \"D_CABAC:poc==8\" or \"D_REC_CB_LUMA:poc==8\")" )
@@ -103,6 +104,13 @@ bool DecAppCfg::parseCfg( int argc, char* argv[] )
 #endif
 #if JVET_J0090_MEMORY_BANDWITH_MEASURE
   ("CacheCfg",                  m_cacheCfgFile,                       string( "" ), "CacheCfg File" )
+#endif
+#if RExt__DECODER_DEBUG_STATISTICS
+  ("Stats",                     m_statMode,                           3,           "Control decoder debugging statistic output mode\n"
+                                                                                   "\t0: disable statistic\n"
+                                                                                   "\t1: enable bit statistic\n"
+                                                                                   "\t2: enable tool statistic\n"
+                                                                                   "\t3: enable bit and tool statistic\n")
 #endif
   ;
 
@@ -220,6 +228,8 @@ DecAppCfg::DecAppCfg()
 , m_respectDefDispWindow(0)
 , m_outputDecodedSEIMessagesFilename()
 , m_bClipOutputVideoToRec709Range(false)
+, m_packedYUVMode(false)
+, m_statMode(0)
 {
   for (uint32_t channelTypeIndex = 0; channelTypeIndex < MAX_NUM_CHANNEL_TYPE; channelTypeIndex++)
   {

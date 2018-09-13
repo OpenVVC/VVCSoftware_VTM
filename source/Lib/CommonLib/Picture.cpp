@@ -728,6 +728,10 @@ Picture::Picture()
   {
     m_prevQP[i] = -1;
   }
+#if JVET_K0157
+  m_spliceIdx = NULL;
+  m_ctuNums = 0;
+#endif
 }
 
 void Picture::create(const ChromaFormat &_chromaFormat, const Size &size, const unsigned _maxCUSize, const unsigned _margin, const bool _decoder)
@@ -786,6 +790,13 @@ void Picture::destroy()
     tileMap->destroy();
     delete tileMap;
     tileMap = nullptr;
+  }
+#endif
+#if JVET_K0157
+  if (m_spliceIdx)
+  {
+    delete[] m_spliceIdx;
+    m_spliceIdx = NULL;
   }
 #endif
 }
@@ -902,6 +913,14 @@ void Picture::finalInit( const SPS& sps, const PPS& pps )
 #if HEVC_TILES_WPP
   tileMap = new TileMap;
   tileMap->create( sps, pps );
+#endif
+#if JVET_K0157
+  if (m_spliceIdx == NULL)
+  {
+    m_ctuNums = cs->pcv->sizeInCtus;
+    m_spliceIdx = new int[m_ctuNums];
+    memset(m_spliceIdx, 0, m_ctuNums * sizeof(int));
+  }
 #endif
 }
 
@@ -1113,3 +1132,25 @@ Pel* Picture::getOrigin( const PictureType &type, const ComponentID compID ) con
   return M_BUFS( jId, type ).getOrigin( compID );
 
 }
+
+#if JVET_K0157
+void Picture::createSpliceIdx(int nums)
+{
+  m_ctuNums = nums;
+  m_spliceIdx = new int[m_ctuNums];
+  memset(m_spliceIdx, 0, m_ctuNums * sizeof(int));
+}
+
+bool Picture::getSpliceFull()
+{
+  int count = 0;
+  for (int i = 0; i < m_ctuNums; i++)
+  {
+    if (m_spliceIdx[i] != 0)
+      count++;
+  }
+  if (count < m_ctuNums * 0.25)
+    return false;
+  return true;
+}
+#endif

@@ -53,7 +53,6 @@
 #if JVET_K0367_AFFINE_FIX_POINT
 #include "CommonLib/AffineGradientSearch.h"
 #endif
-
 //! \ingroup EncoderLib
 //! \{
 
@@ -64,7 +63,6 @@
 static const uint32_t MAX_NUM_REF_LIST_ADAPT_SR = 2;
 static const uint32_t MAX_IDX_ADAPT_SR          = 33;
 static const uint32_t NUM_MV_PREDICTORS         = 3;
-
 class EncModeCtrl;
 
 /// encoder search class
@@ -95,7 +93,6 @@ private:
 
   ClpRng          m_lumaClpRng;
 
-
 protected:
   // interface to option
   EncCfg*         m_pcEncCfg;
@@ -124,7 +121,6 @@ protected:
 
   bool            m_isInitialized;
 
-
 public:
   InterSearch();
   virtual ~InterSearch();
@@ -145,7 +141,6 @@ public:
   void destroy                      ();
 
   void setTempBuffers               (CodingStructure ****pSlitCS, CodingStructure ****pFullCS, CodingStructure **pSaveCS );
-
 #if ENABLE_SPLIT_PARALLELISM
   void copyState                    ( const InterSearch& other );
 #endif
@@ -179,6 +174,10 @@ protected:
 #if JVET_K0357_AMVR
     unsigned    imvShift;
 #endif
+#if JVET_K0157
+    bool        inCtuSearch;
+    bool        zeroMV;
+#endif
   } IntTZSearchStruct;
 
   // sub-functions for ME
@@ -198,7 +197,6 @@ public:
 
   /// set ME search range
   void setAdaptiveSearchRange       ( int iDir, int iRefIdx, int iSearchRange) { CHECK(iDir >= MAX_NUM_REF_LIST_ADAPT_SR || iRefIdx>=int(MAX_IDX_ADAPT_SR), "Invalid index"); m_aaiAdaptSR[iDir][iRefIdx] = iSearchRange; }
-
 
 protected:
 
@@ -291,6 +289,9 @@ protected:
                                     const Mv&             cMvPred,
                                     const int             iSrchRng,
                                     SearchRange&          sr
+#if JVET_K0157
+                                  , IntTZSearchStruct &  cStruct
+#endif
                                   );
 
   void xPatternSearchFast         ( const PredictionUnit& pu,
@@ -368,7 +369,10 @@ protected:
 
   void xCopyAffineAMVPInfo        ( AffineAMVPInfo& src, AffineAMVPInfo& dst );
   void xCheckBestAffineMVP        ( PredictionUnit &pu, AffineAMVPInfo &affineAMVPInfo, RefPicList eRefPicList, Mv acMv[3], Mv acMvPred[3], int& riMVPIdx, uint32_t& ruiBits, Distortion& ruiCost );
+
 #endif
+
+
   void xExtDIFUpSamplingH         ( CPelBuf* pcPattern );
   void xExtDIFUpSamplingQ         ( CPelBuf* pcPatternKey, Mv halfPelRef );
 
@@ -378,12 +382,13 @@ protected:
 
   void  setWpScalingDistParam     ( int iRefIdx, RefPicList eRefPicListCur, Slice *slice );
 
-
 public:
 
-  void encodeResAndCalcRdInterCU  (CodingStructure &cs, Partitioner &partitioner, const bool &skipResidual);
+  void encodeResAndCalcRdInterCU  (CodingStructure &cs, Partitioner &partitioner, const bool &skipResidual
+  );
   void xEncodeInterResidualQT     (CodingStructure &cs, Partitioner &partitioner, const ComponentID &compID);
-  void xEstimateInterResidualQT   (CodingStructure &cs, Partitioner &partitioner, Distortion *puiZeroDist = NULL);
+  void xEstimateInterResidualQT   (CodingStructure &cs, Partitioner &partitioner, Distortion *puiZeroDist = NULL
+  );
   uint64_t xGetSymbolFracBitsInter  (CodingStructure &cs, Partitioner &partitioner);
 
 };// END CLASS DEFINITION EncSearch

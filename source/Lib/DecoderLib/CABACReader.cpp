@@ -180,7 +180,7 @@ bool CABACReader::coding_tree_unit( CodingStructure& cs, const UnitArea& area, i
         ctx += leftCTUAddr > -1 ? ( ctbAlfFlag[leftCTUAddr] ? 1 : 0 ) : 0;
         ctx += aboveCTUAddr > -1 ? ( ctbAlfFlag[aboveCTUAddr] ? 1 : 0 ) : 0;
 
-        if( alfSliceParam.chromaCtbPresentFlag && compIdx )
+        if( compIdx && alfSliceParam.chromaCtbPresentFlag )
         {
           ctbAlfFlag[ctuRsAddr] = 1;
         }
@@ -703,7 +703,6 @@ bool CABACReader::split_cu_flag( CodingStructure& cs, Partitioner &partitioner )
 bool CABACReader::coding_unit( CodingUnit &cu, Partitioner &partitioner, CUCtx& cuCtx )
 {
   CodingStructure& cs = *cu.cs;
-
   // transquant bypass flag
   if( cs.pps->getTransquantBypassEnabledFlag() )
   {
@@ -802,7 +801,7 @@ void CABACReader::imv_mode( CodingUnit& cu, MergeCtx& mrgCtx )
 
   unsigned value = 0;
   unsigned ctxId = DeriveCtx::CtxIMVFlag( cu );
-  value = m_BinDecoder.decodeBin( Ctx::ImvFlag( ctxId ) );
+    value = m_BinDecoder.decodeBin( Ctx::ImvFlag( ctxId ) );
   DTRACE( g_trace_ctx, D_SYNTAX, "imv_mode() value=%d ctx=%d\n", value, ctxId );
 
   if( spsNext.getImvMode() == IMV_4PEL && value )
@@ -852,7 +851,6 @@ void CABACReader::cu_pred_data( CodingUnit &cu )
     intra_chroma_pred_modes( cu );
     return;
   }
-
   MergeCtx mrgCtx;
 
   for( auto &pu : CU::traversePUs( cu ) )
@@ -863,6 +861,7 @@ void CABACReader::cu_pred_data( CodingUnit &cu )
 #if JVET_K0357_AMVR
   imv_mode   ( cu, mrgCtx );
 #endif
+
 }
 
 

@@ -213,6 +213,9 @@ protected:
 #if ENABLE_WPP_PARALLELISM
   bool      m_AltDQPCoding;
 #endif
+#if JVET_K0157
+  bool      m_compositeRefEnabled;        //composite reference
+#endif
   // ADD_NEW_TOOL : (encoder lib) add tool enabling flags and associated parameters here
 
   bool      m_useFastLCTU;
@@ -567,8 +570,8 @@ public:
   bool      getPrintMSEBasedSequencePSNR    ()         const { return m_printMSEBasedSequencePSNR;  }
   void      setPrintMSEBasedSequencePSNR    (bool value)     { m_printMSEBasedSequencePSNR = value; }
 
-  bool getPrintHexPsnr() const { return m_printHexPsnr; }
-  void setPrintHexPsnr(bool value) { m_printHexPsnr = value; }
+  bool      getPrintHexPsnr                 ()         const { return m_printHexPsnr;               }
+  void      setPrintHexPsnr                 (bool value)     { m_printHexPsnr = value;              }
 
   bool      getPrintFrameMSE                ()         const { return m_printFrameMSE;              }
   void      setPrintFrameMSE                (bool value)     { m_printFrameMSE = value;             }
@@ -667,6 +670,11 @@ public:
 
 
 
+
+#if JVET_K0157
+  void      setUseCompositeRef              (bool b)         { m_compositeRefEnabled = b; }
+  bool      getUseCompositeRef              ()         const { return m_compositeRefEnabled; }
+#endif
 
   // ADD_NEW_TOOL : (encoder lib) add access functions here
 

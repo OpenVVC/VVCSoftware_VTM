@@ -642,7 +642,6 @@ void CABACWriter::split_cu_mode_mt(const PartSplit split, const CodingStructure&
 void CABACWriter::coding_unit( const CodingUnit& cu, Partitioner& partitioner, CUCtx& cuCtx )
 {
   CodingStructure& cs = *cu.cs;
-
   // transquant bypass flag
   if( cs.pps->getTransquantBypassEnabledFlag() )
   {
@@ -753,6 +752,7 @@ void CABACWriter::cu_pred_data( const CodingUnit& cu )
 #if JVET_K0357_AMVR
   imv_mode   ( cu );
 #endif
+
 }
 
 
@@ -1302,7 +1302,7 @@ void CABACWriter::imv_mode( const CodingUnit& cu )
   }
 
   unsigned ctxId = DeriveCtx::CtxIMVFlag( cu );
-  m_BinEncoder.encodeBin( ( cu.imv > 0 ), Ctx::ImvFlag( ctxId ) );
+    m_BinEncoder.encodeBin( ( cu.imv > 0 ), Ctx::ImvFlag( ctxId ) );
   DTRACE( g_trace_ctx, D_SYNTAX, "imv_mode() value=%d ctx=%d\n", (cu.imv > 0), ctxId );
 
   if( spsNext.getImvMode() == IMV_4PEL && cu.imv > 0 )

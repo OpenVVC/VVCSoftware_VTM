@@ -131,6 +131,15 @@ private:
 
   SEIWriter               m_seiWriter;
 
+#if JVET_K0157
+  Picture *               m_picBg;
+  Picture *               m_picOrig;
+  int                     m_bgPOC;
+  bool                    m_isEncodedLTRef;
+  bool                    m_isPrepareLTRef;
+  bool                    m_isUseLTRef;
+  int                     m_lastLTRefPoc;
+#endif
   //--Adaptive Loop filter
   EncSampleAdaptiveOffset*  m_pcSAO;
 #if JVET_K0371_ALF
@@ -173,21 +182,45 @@ public:
 
   void  init        ( EncLib* pcEncLib );
   void  compressGOP ( int iPOCLast, int iNumPicRcvd, PicList& rcListPic, std::list<PelUnitBuf*>& rcListPicYuvRec,
-                      bool isField, bool isTff, const InputColourSpaceConversion snr_conversion, const bool printFrameMSE );
+                      bool isField, bool isTff, const InputColourSpaceConversion snr_conversion, const bool printFrameMSE
+#if JVET_K0157
+                    , bool isEncodeLtRef
+#endif
+  );
   void  xAttachSliceDataToNalUnit (OutputNALUnit& rNalu, OutputBitstream* pcBitstreamRedirect);
 
 
   int   getGOPSize()          { return  m_iGopSize;  }
 
   PicList*   getListPic()      { return m_pcListPic; }
+#if JVET_K0157
+  void      setPicBg(Picture* tmpPicBg) { m_picBg = tmpPicBg; }
+  Picture*  getPicBg() const { return m_picBg; }
+  void      setPicOrig(Picture* tmpPicBg) { m_picOrig = tmpPicBg; }
+  Picture*  getPicOrig() { return m_picOrig; }
+  void      setNewestBgPOC(int poc) { m_bgPOC = poc; }
+  int       getNewestBgPOC() const { return m_bgPOC; }
+  void      setEncodedLTRef(bool isEncodedLTRef) { m_isEncodedLTRef = isEncodedLTRef; }
+  bool      getEncodedLTRef() { return m_isEncodedLTRef; }
+  void      setUseLTRef(bool isUseLTRef) { m_isUseLTRef = isUseLTRef; }
+  bool      getUseLTRef() { return m_isUseLTRef; }
+  void      setPrepareLTRef(bool isPrepareLTRef) { m_isPrepareLTRef = isPrepareLTRef; }
+  bool      getPrepareLTRef() { return m_isPrepareLTRef; }
+  void      setLastLTRefPoc(int iLastLTRefPoc) { m_lastLTRefPoc = iLastLTRefPoc; }
+  int       getLastLTRefPoc() const { return m_lastLTRefPoc; }
 
-  void  printOutSummary      ( uint32_t uiNumAllPicCoded, bool isField, const bool printMSEBasedSNR, const bool printSequenceMSE, const BitDepths &bitDepths );
+#endif
+  void  printOutSummary      ( uint32_t uiNumAllPicCoded, bool isField, const bool printMSEBasedSNR, const bool printSequenceMSE, const bool printHexPsnr, const BitDepths &bitDepths );
 #if W0038_DB_OPT
   uint64_t  preLoopFilterPicAndCalcDist( Picture* pcPic );
 #endif
   EncSlice*  getSliceEncoder()   { return m_pcSliceEncoder; }
   NalUnitType getNalUnitType( int pocCurr, int lastIdr, bool isField );
   void arrangeLongtermPicturesInRPS(Slice *, PicList& );
+#if JVET_K0157
+  void arrangeCompositeReference(Slice* pcSlice, PicList& rcListPic, int pocCurr);
+  void updateCompositeReference(Slice* pcSlice, PicList& rcListPic, int pocCurr);
+#endif
 
 #if EXTENSION_360_VIDEO
   Analyze& getAnalyzeAllData() { return m_gcAnalyzeAll; }
@@ -201,15 +234,31 @@ protected:
 
 protected:
 
-  void  xInitGOP          ( int iPOCLast, int iNumPicRcvd, bool isField );
+  void  xInitGOP          ( int iPOCLast, int iNumPicRcvd, bool isField
+#if JVET_K0157
+    , bool isEncodeLtRef
+#endif
+  );
   void  xGetBuffer        ( PicList& rcListPic, std::list<PelUnitBuf*>& rcListPicYuvRecOut,
                             int iNumPicRcvd, int iTimeOffset, Picture*& rpcPic, int pocCurr, bool isField );
 
-  void  xCalculateAddPSNRs         ( const bool isField, const bool isFieldTopFieldFirst, const int iGOPid, Picture* pcPic, const AccessUnit&accessUnit, PicList &rcListPic, int64_t dEncTime, const InputColourSpaceConversion snr_conversion, const bool printFrameMSE, double* PSNR_Y );
-  void  xCalculateAddPSNR          ( Picture* pcPic, PelUnitBuf cPicD, const AccessUnit&, double dEncTime, const InputColourSpaceConversion snr_conversion, const bool printFrameMSE, double* PSNR_Y );
+  void  xCalculateAddPSNRs(const bool isField, const bool isFieldTopFieldFirst, const int iGOPid, Picture* pcPic, const AccessUnit&accessUnit, PicList &rcListPic, int64_t dEncTime, const InputColourSpaceConversion snr_conversion, const bool printFrameMSE, double* PSNR_Y
+#if JVET_K0157
+    , bool isEncodeLtRef
+#endif
+  );
+  void  xCalculateAddPSNR(Picture* pcPic, PelUnitBuf cPicD, const AccessUnit&, double dEncTime, const InputColourSpaceConversion snr_conversion, const bool printFrameMSE, double* PSNR_Y
+#if JVET_K0157
+    , bool isEncodeLtRef
+#endif
+  );
   void  xCalculateInterlacedAddPSNR( Picture* pcPicOrgFirstField, Picture* pcPicOrgSecondField,
                                      PelUnitBuf cPicRecFirstField, PelUnitBuf cPicRecSecondField,
-                                     const InputColourSpaceConversion snr_conversion, const bool printFrameMSE, double* PSNR_Y );
+                                     const InputColourSpaceConversion snr_conversion, const bool printFrameMSE, double* PSNR_Y
+#if JVET_K0157
+                                    , bool isEncodeLtRef
+#endif
+  );
 
   uint64_t xFindDistortionPlane(const CPelBuf& pic0, const CPelBuf& pic1, const uint32_t rshift
 #if ENABLE_QPA

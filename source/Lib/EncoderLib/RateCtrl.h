@@ -84,12 +84,19 @@ struct TRCLCU
   int m_numberOfPixel;
   double m_costIntra;
   int m_targetBitsLeft;
+#if JVET_K0390_RATECTRL
+  double m_actualSSE;
+  double m_actualMSE;
+#endif
 };
 
 struct TRCParameter
 {
   double m_alpha;
   double m_beta;
+#if JVET_K0390_RATECTRL
+  int    m_validPix;
+#endif
 };
 
 class EncRCSeq
@@ -147,6 +154,10 @@ public:
   int    getAdaptiveBits()              { return m_adaptiveBit;  }
   double getLastLambda()                { return m_lastLambda;   }
   void   setLastLambda( double lamdba ) { m_lastLambda = lamdba; }
+#if RATECTRL_FIX_FULLNBIT
+  void setBitDepth(int bitDepth) { m_bitDepth = bitDepth; }
+  int getbitDepth() { return m_bitDepth; }
+#endif
 
 private:
   int m_totalFrames;
@@ -177,6 +188,9 @@ private:
 
   int m_adaptiveBit;
   double m_lastLambda;
+#if RATECTRL_FIX_FULLNBIT
+  int m_bitDepth;
+#endif
 };
 
 class EncRCGOP
@@ -193,7 +207,11 @@ public:
 private:
   int  xEstGOPTargetBits( EncRCSeq* encRCSeq, int GOPSize );
   void   xCalEquaCoeff( EncRCSeq* encRCSeq, double* lambdaRatio, double* equaCoeffA, double* equaCoeffB, int GOPSize );
+#if JVET_K0390_RATECTRL
+  double xSolveEqua(EncRCSeq* encRCSeq, double targetBpp, double* equaCoeffA, double* equaCoeffB, int GOPSize);
+#else
   double xSolveEqua( double targetBpp, double* equaCoeffA, double* equaCoeffB, int GOPSize );
+#endif
 
 public:
   EncRCSeq* getEncRCSeq()        { return m_encRCSeq; }
@@ -282,6 +300,10 @@ public:
   void setPicEstQP( int QP )                              { m_estPicQP = QP; }
   double getPicEstLambda()                                { return m_estPicLambda; }
   void setPicEstLambda( double lambda )                   { m_picLambda = lambda; }
+#if JVET_K0390_RATECTRL
+  double getPicMSE()                                      { return m_picMSE; }
+  void  setPicMSE(double avgMSE)                           { m_picMSE = avgMSE; }
+#endif
 
 private:
   EncRCSeq* m_encRCSeq;
@@ -309,6 +331,10 @@ private:
   int m_picActualBits;          // the whole picture, including header
   int m_picQP;                  // in integer form
   double m_picLambda;
+#if JVET_K0390_RATECTRL
+  double m_picMSE;
+  int m_validPixelsInPic;
+#endif
 };
 
 class RateCtrl
@@ -318,7 +344,11 @@ public:
   ~RateCtrl();
 
 public:
+#if RATECTRL_FIX_FULLNBIT
+  void init(int totalFrames, int targetBitrate, int frameRate, int GOPSize, int picWidth, int picHeight, int LCUWidth, int LCUHeight, int bitDepth, int keepHierBits, bool useLCUSeparateModel, GOPEntry GOPList[MAX_GOP]);
+#else
   void init( int totalFrames, int targetBitrate, int frameRate, int GOPSize, int picWidth, int picHeight, int LCUWidth, int LCUHeight, int keepHierBits, bool useLCUSeparateModel, GOPEntry GOPList[MAX_GOP] );
+#endif
   void destroy();
   void initRCPic( int frameLevel );
   void initRCGOP( int numberOfPictures );

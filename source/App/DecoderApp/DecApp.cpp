@@ -121,6 +121,10 @@ uint32_t DecApp::decode()
      * requires the DecApp::decode() method to be called again with the same
      * nal unit. */
 #if RExt__DECODER_DEBUG_STATISTICS
+    CodingStatistics& stat = CodingStatistics::GetSingletonInstance();
+    CHECK(m_statMode < STATS__MODE_NONE || m_statMode > STATS__MODE_ALL, "Wrong coding statistics output mode");
+    stat.m_mode = m_statMode;
+
     CodingStatistics::CodingStatisticsData* backupStats = new CodingStatistics::CodingStatisticsData(CodingStatistics::GetStatistics());
 #endif
 
@@ -210,6 +214,11 @@ uint32_t DecApp::decode()
             }
         }
 
+        if (m_packedYUVMode && (m_outputBitDepth[CH_L] != 10 && m_outputBitDepth[CH_L] != 12))
+        {
+          EXIT ("Invalid output bit-depth for packed YUV output, aborting\n");
+        }
+
         m_cVideoIOYuvReconFile.open( m_reconFileName, true, m_outputBitDepth, m_outputBitDepth, bitDepths.recon ); // write mode
         openedReconFile = true;
       }
@@ -279,9 +288,9 @@ void DecApp::xCreateDecLib()
   m_cDecLib.create();
 
   // initialize decoder class
-  m_cDecLib.init( 
+  m_cDecLib.init(
 #if JVET_J0090_MEMORY_BANDWITH_MEASURE
-    m_cacheCfgFile 
+    m_cacheCfgFile
 #endif
   );
   m_cDecLib.setDecodedPictureHashSEIEnabled(m_decodedPictureHashSEIEnabled);
@@ -394,11 +403,13 @@ void DecApp::xWriteOutput( PicList* pcListPic, uint32_t tId )
           if (display)
           {
             m_cVideoIOYuvReconFile.write( pcPicTop->getRecoBuf(), pcPicBottom->getRecoBuf(),
-                                           m_outputColourSpaceConvert,
-                                           conf.getWindowLeftOffset() + defDisp.getWindowLeftOffset(),
-                                           conf.getWindowRightOffset() + defDisp.getWindowRightOffset(),
-                                           conf.getWindowTopOffset() + defDisp.getWindowTopOffset(),
-                                           conf.getWindowBottomOffset() + defDisp.getWindowBottomOffset(), NUM_CHROMA_FORMAT, isTff );
+                                          m_outputColourSpaceConvert,
+                                          false, // TODO: m_packedYUVMode,
+                                          conf.getWindowLeftOffset()   + defDisp.getWindowLeftOffset(),
+                                          conf.getWindowRightOffset()  + defDisp.getWindowRightOffset(),
+                                          conf.getWindowTopOffset()    + defDisp.getWindowTopOffset(),
+                                          conf.getWindowBottomOffset() + defDisp.getWindowBottomOffset(),
+                                          NUM_CHROMA_FORMAT, isTff );
           }
         }
 
@@ -445,6 +456,7 @@ void DecApp::xWriteOutput( PicList* pcListPic, uint32_t tId )
 
           m_cVideoIOYuvReconFile.write( pcPic->getRecoBuf(),
                                         m_outputColourSpaceConvert,
+                                        m_packedYUVMode,
                                         conf.getWindowLeftOffset()   + defDisp.getWindowLeftOffset(),
                                         conf.getWindowRightOffset()  + defDisp.getWindowRightOffset(),
                                         conf.getWindowTopOffset()    + defDisp.getWindowTopOffset(),
@@ -502,15 +514,18 @@ void DecApp::xFlushOutput( PicList* pcListPic )
         // write to file
         if ( !m_reconFileName.empty() )
         {
-          const Window &conf = pcPicTop->cs->sps->getConformanceWindow();
+          const Window &conf    = pcPicTop->cs->sps->getConformanceWindow();
           const Window  defDisp = (m_respectDefDispWindow && pcPicTop->cs->sps->getVuiParametersPresentFlag()) ? pcPicTop->cs->sps->getVuiParameters()->getDefaultDisplayWindow() : Window();
-          const bool isTff = pcPicTop->topField;
+          const bool    isTff   = pcPicTop->topField;
+
           m_cVideoIOYuvReconFile.write( pcPicTop->getRecoBuf(), pcPicBottom->getRecoBuf(),
-                                         m_outputColourSpaceConvert,
-                                         conf.getWindowLeftOffset() + defDisp.getWindowLeftOffset(),
-                                         conf.getWindowRightOffset() + defDisp.getWindowRightOffset(),
-                                         conf.getWindowTopOffset() + defDisp.getWindowTopOffset(),
-                                         conf.getWindowBottomOffset() + defDisp.getWindowBottomOffset(), NUM_CHROMA_FORMAT, isTff );
+                                        m_outputColourSpaceConvert,
+                                        false, // TODO: m_packedYUVMode,
+                                        conf.getWindowLeftOffset()   + defDisp.getWindowLeftOffset(),
+                                        conf.getWindowRightOffset()  + defDisp.getWindowRightOffset(),
+                                        conf.getWindowTopOffset()    + defDisp.getWindowTopOffset(),
+                                        conf.getWindowBottomOffset() + defDisp.getWindowBottomOffset(),
+                                        NUM_CHROMA_FORMAT, isTff );
         }
 
         // update POC of display order
@@ -560,6 +575,7 @@ void DecApp::xFlushOutput( PicList* pcListPic )
 
           m_cVideoIOYuvReconFile.write( pcPic->getRecoBuf(),
                                         m_outputColourSpaceConvert,
+                                        m_packedYUVMode,
                                         conf.getWindowLeftOffset()   + defDisp.getWindowLeftOffset(),
                                         conf.getWindowRightOffset()  + defDisp.getWindowRightOffset(),
                                         conf.getWindowTopOffset()    + defDisp.getWindowTopOffset(),
